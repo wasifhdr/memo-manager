@@ -22,7 +22,7 @@ export function NotificationRow({ n }: { n: NotificationItem }) {
   const content = (
     <div className="min-w-0 flex-1">
       <p className={`text-[0.8125rem] ${unread ? 'font-semibold text-(--color-ink)' : 'text-(--color-ink)/70'}`}>{n.title}</p>
-      {n.body ? <p className="mt-0.5 truncate text-[0.8125rem] text-(--color-ink)/50">{n.body}</p> : null}
+      {n.body ? <p className="mt-0.5 line-clamp-2 text-[0.8125rem] text-(--color-ink)/50">{n.body}</p> : null}
       <p className="mt-1 font-mono-nums text-[0.6875rem] text-(--color-ink)/50">{formatDateTime(n.createdAt)}</p>
     </div>
   )

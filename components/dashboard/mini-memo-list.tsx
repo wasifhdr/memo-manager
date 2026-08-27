@@ -14,14 +14,19 @@ export function MiniMemoList({
     <ul className="flex flex-col divide-y divide-(--color-sand)">
       {items.map((m) => (
         <li key={m.id}>
-          <Link href={`/memos/${m.id}`} className="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0 hover:text-(--color-orange-deep)">
+          <Link
+            href={`/memos/${m.id}`}
+            className="flex items-start justify-between gap-3 py-2.5 first:pt-0 last:pb-0 hover:text-(--color-orange-deep)"
+          >
             <span className="min-w-0">
-              <span className="block truncate text-[0.8125rem] font-bold text-(--color-ink)">{m.subject}</span>
-              <span className="block font-mono-nums text-[0.75rem] text-(--color-ink)/50">
+              {/* two lines rather than a hard single-line truncate — a memo
+                  subject cut at ~20 characters is not identifiable */}
+              <span className="line-clamp-2 text-[0.8125rem] font-bold text-(--color-ink)">{m.subject}</span>
+              <span className="mt-0.5 block font-mono-nums text-[0.75rem] text-(--color-ink)/50">
                 {m.memoNumber}{m.caption ? ` · ${m.caption}` : ''}
               </span>
             </span>
-            {m.status ? <StatusBadge status={m.status} className="shrink-0" /> : null}
+            {m.status ? <StatusBadge status={m.status} className="mt-0.5 shrink-0" /> : null}
           </Link>
         </li>
       ))}
