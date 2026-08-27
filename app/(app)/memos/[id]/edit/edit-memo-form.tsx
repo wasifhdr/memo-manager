@@ -35,7 +35,7 @@ export function EditMemoForm({
             <Input id="subject" name="subject" required maxLength={200} defaultValue={memo.subject} />
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div>
               <Label htmlFor="departmentId" hint="optional">Department</Label>
               <Select id="departmentId" name="departmentId" defaultValue={memo.departmentId ?? ''} placeholder="None" options={departments} />

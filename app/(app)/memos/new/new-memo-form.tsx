@@ -27,7 +27,7 @@ export function NewMemoForm({
             <Input id="subject" name="subject" required maxLength={200} placeholder="What is this memo about?" autoFocus={!bare} />
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div>
               <Label htmlFor="departmentId" hint="optional">Department</Label>
               <Select id="departmentId" name="departmentId" placeholder="None" options={departments} />

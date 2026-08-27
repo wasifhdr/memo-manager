@@ -29,7 +29,7 @@ export function OrganizationProfileForm({ org }: { org: Org }) {
         <h2 className="text-sm font-semibold">Organization profile</h2>
       </CardHeader>
       <CardBody>
-        <form action={formAction} className="grid gap-4 sm:grid-cols-2">
+        <form action={formAction} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <Label htmlFor="name">Organization name</Label>
             <Input id="name" name="name" defaultValue={org.name} required />

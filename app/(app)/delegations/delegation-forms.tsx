@@ -25,7 +25,7 @@ export function NewDelegationForm({ users, onDone }: { users: Option[]; onDone?:
   }, [state, onDone])
 
   return (
-    <form ref={ref} action={formAction} className="grid gap-4 sm:grid-cols-2">
+    <form ref={ref} action={formAction} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <div>
         <Label htmlFor="delegateId">Delegate to</Label>
         <Select id="delegateId" name="delegateId" placeholder="Choose a user" options={users} required />

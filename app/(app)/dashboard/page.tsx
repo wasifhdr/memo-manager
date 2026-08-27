@@ -36,7 +36,7 @@ export default async function DashboardPage() {
         <StatTile label="Urgent memos" value={d.urgentMemos} tone="urgent" icon={IconFlame} />
       </div>
 
-      <div className="mb-6 grid gap-6 lg:grid-cols-3">
+      <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Card>
           <CardHeader className="justify-between">
             <h2 className="text-sm font-semibold">Awaiting your action</h2>
@@ -85,7 +85,7 @@ export default async function DashboardPage() {
         </Card>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[2fr_1fr]">
         <Card>
           <CardHeader>
             <h2 className="text-sm font-semibold">Recent activity</h2>

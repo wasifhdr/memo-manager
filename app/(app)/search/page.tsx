@@ -72,7 +72,7 @@ export default async function SearchPage({
     <div>
       <PageHeader title="Search" description="Search within your organization's memos." />
 
-      <form method="get" className="mb-6 grid gap-4 rounded-[var(--radius-card)] border border-(--color-sand) bg-(--color-paper) p-4 sm:grid-cols-2 lg:grid-cols-4">
+      <form method="get" className="mb-6 grid grid-cols-1 gap-4 rounded-[var(--radius-card)] border border-(--color-sand) bg-(--color-paper) p-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="sm:col-span-2 lg:col-span-4">
           <Label htmlFor="text">Keyword</Label>
           <Input id="text" name="text" defaultValue={sp.text} placeholder="Search subject and body…" />

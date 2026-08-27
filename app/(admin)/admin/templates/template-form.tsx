@@ -48,7 +48,7 @@ export function TemplateForm({
       {mode === 'edit' && template ? <input type="hidden" name="id" value={template.id} /> : null}
       <input type="hidden" name="steps" value={JSON.stringify(steps)} />
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
           <label className="mb-1.5 block text-[0.8125rem] font-medium text-(--color-ink)" htmlFor="tpl-name">Template name</label>
           <Input id="tpl-name" name="name" value={name} onChange={(e) => setName(e.target.value)} required placeholder="e.g. Purchase Request" />

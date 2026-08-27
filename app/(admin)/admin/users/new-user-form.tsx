@@ -28,7 +28,7 @@ export function NewUserForm({
   }, [state, onCreated])
 
   return (
-    <form ref={formRef} action={formAction} className="grid gap-4 sm:grid-cols-2">
+    <form ref={formRef} action={formAction} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <div>
         <Label htmlFor="name">Name</Label>
         <Input id="name" name="name" required autoFocus />

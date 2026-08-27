@@ -95,7 +95,7 @@ export default async function ReportsPage({
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Card>
           <CardHeader><h2 className="text-sm font-semibold">By status</h2></CardHeader>
           <CardBody>
