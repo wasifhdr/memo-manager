@@ -8,7 +8,16 @@ import { UserRow } from './user-row'
 
 export const metadata: Metadata = { title: 'Users' }
 
-const HEADERS = ['Name', 'Designation', 'Department', 'Role', 'Status', 'Last login', 'Actions']
+// [label, extra classes] — secondary columns only appear once there is room
+const HEADERS: [string, string][] = [
+  ['Name', ''],
+  ['Designation', 'hidden lg:table-cell'],
+  ['Department', 'hidden lg:table-cell'],
+  ['Role', 'hidden sm:table-cell'],
+  ['Status', 'hidden sm:table-cell'],
+  ['Last login', 'hidden xl:table-cell'],
+  ['Actions', ''],
+]
 
 export default async function UsersPage() {
   const ctx = await requireAdmin()
@@ -27,15 +36,15 @@ export default async function UsersPage() {
         <EmptyState title="No users yet" description="Add your first user to get started." />
       ) : (
         <div className="overflow-x-auto rounded-[var(--radius-card)] border border-(--color-sand) bg-(--color-paper)">
-          <table className="w-full min-w-[52rem] border-collapse text-sm">
+          <table className="w-full min-w-[20rem] border-collapse text-sm">
             <thead>
               <tr className="border-b border-(--color-sand) bg-(--color-cream)">
-                {HEADERS.map((h, i) => (
+                {HEADERS.map(([label, responsive], i) => (
                   <th
-                    key={h}
-                    className={`px-4 py-2.5 text-[0.75rem] font-semibold uppercase tracking-wide text-(--color-ink)/50 ${i === HEADERS.length - 1 ? 'text-right' : 'text-left'}`}
+                    key={label}
+                    className={`px-4 py-2.5 text-[0.75rem] font-semibold uppercase tracking-wide text-(--color-ink)/50 ${responsive} ${i === HEADERS.length - 1 ? 'text-right' : 'text-left'}`}
                   >
-                    {h}
+                    {label}
                   </th>
                 ))}
               </tr>

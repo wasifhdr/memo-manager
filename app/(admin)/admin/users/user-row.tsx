@@ -70,16 +70,26 @@ export function UserRow({
       <td className="px-4 py-3">
         <div className="font-medium text-(--color-ink)">{user.name}</div>
         <div className="text-[0.8125rem] text-(--color-ink)/50">{user.email}</div>
+        {/* Columns hidden on narrow screens fold back in here so nothing is lost. */}
+        <div className="mt-1.5 flex flex-wrap items-center gap-1.5 sm:hidden">
+          <Badge>{user.role === 'org_admin' ? 'Admin' : 'Member'}</Badge>
+          {user.status === 'active' ? <Badge>Active</Badge> : <Badge className="opacity-70">Inactive</Badge>}
+        </div>
+        {user.designation || user.departmentName ? (
+          <div className="mt-1 text-[0.8125rem] text-(--color-ink)/70 lg:hidden">
+            {[user.designation, user.departmentName].filter(Boolean).join(' · ')}
+          </div>
+        ) : null}
       </td>
-      <td className="px-4 py-3 text-(--color-ink)/70">{user.designation || '—'}</td>
-      <td className="px-4 py-3 text-(--color-ink)/70">{user.departmentName || '—'}</td>
-      <td className="px-4 py-3">
+      <td className="hidden px-4 py-3 text-(--color-ink)/70 lg:table-cell">{user.designation || '—'}</td>
+      <td className="hidden px-4 py-3 text-(--color-ink)/70 lg:table-cell">{user.departmentName || '—'}</td>
+      <td className="hidden px-4 py-3 sm:table-cell">
         <Badge>{user.role === 'org_admin' ? 'Admin' : 'Member'}</Badge>
       </td>
-      <td className="px-4 py-3">
+      <td className="hidden px-4 py-3 sm:table-cell">
         {user.status === 'active' ? <Badge>Active</Badge> : <Badge className="opacity-70">Inactive</Badge>}
       </td>
-      <td className="px-4 py-3 text-(--color-ink)/50">
+      <td className="hidden px-4 py-3 text-(--color-ink)/50 xl:table-cell">
         {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : 'Never'}
       </td>
       <td className="px-4 py-3">

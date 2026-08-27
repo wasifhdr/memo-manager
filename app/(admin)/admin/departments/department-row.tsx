@@ -40,8 +40,13 @@ export function DepartmentRow({ dept }: { dept: Department }) {
 
   return (
     <tr className="border-b border-(--color-sand) last:border-b-0">
-      <td className="px-4 py-3 font-medium text-(--color-ink)">{dept.name}</td>
-      <td className="px-4 py-3 text-(--color-ink)/70">{dept.description || '—'}</td>
+      <td className="px-4 py-3 font-medium text-(--color-ink)">
+        {dept.name}
+        {dept.description ? (
+          <div className="mt-0.5 text-[0.8125rem] font-normal text-(--color-ink)/60 md:hidden">{dept.description}</div>
+        ) : null}
+      </td>
+      <td className="hidden px-4 py-3 text-(--color-ink)/70 md:table-cell">{dept.description || '—'}</td>
       <td className="px-4 py-3">
         {dept.active ? <Badge>Active</Badge> : <Badge className="opacity-70">Inactive</Badge>}
       </td>
