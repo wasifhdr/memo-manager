@@ -249,15 +249,40 @@
     outline-offset: 2px;
   }
 
-  /* Scrollbars are hidden app-wide. Scrolling itself is untouched — wheel,
-     trackpad, touch, keyboard and drag all still work; only the painted bar
-     is gone, and it takes no layout width either. */
-  * {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
+  /* Vertical scrollbars are hidden; horizontal ones stay, so a horizontally
+     scrollable container (the desktop data tables) still advertises that
+     there is more to the right.
+
+     WebKit/Blink can target a single axis via ::-webkit-scrollbar:vertical.
+     Firefox's scrollbar-width has no per-axis form, so it keeps thin bars on
+     both rather than losing the horizontal affordance too.
+
+     Deliberately no standard scrollbar-width/scrollbar-color on *: setting
+     either one makes Chromium ignore ::-webkit-scrollbar altogether, and that
+     pseudo-element is the only place a single axis can be targeted. */
   *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar:vertical {
     display: none;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  *::-webkit-scrollbar-thumb {
+    background-color: var(--color-sand);
+    border-radius: 999px;
+    border: 2px solid var(--color-cream);
+  }
+
+  /* Firefox ignores ::-webkit-scrollbar and has no per-axis control, so it
+     gets thin themed bars on both axes rather than losing the horizontal one. */
+  @supports (-moz-appearance: none) {
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: var(--color-sand) transparent;
+    }
   }
 
   /* Default link colour only — any text-* utility on an <a> must win,
