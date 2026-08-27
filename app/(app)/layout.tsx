@@ -1,11 +1,12 @@
 import { requireSession } from '@/lib/tenant'
 import { getOrganization } from '@/lib/repo/org'
+import { unreadCount } from '@/lib/repo/notifications'
 import { AppShell } from '@/components/app-shell'
 import { logoutAction } from '@/app/(auth)/actions'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const ctx = await requireSession()
-  const org = await getOrganization(ctx)
+  const [org, unread] = await Promise.all([getOrganization(ctx), unreadCount(ctx)])
 
   return (
     <AppShell
@@ -13,8 +14,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       hasLogo={!!org?.logo}
       userName={ctx.user.name}
       userRole={ctx.user.role}
-      // Wired to the real count once lib/repo/notifications.ts lands (Task 10).
-      unreadCount={0}
+      unreadCount={unread}
       logoutAction={logoutAction}
     >
       {children}
