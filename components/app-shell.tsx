@@ -399,7 +399,20 @@ export function AppShell({
       ) : null}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 bg-(--color-ink) px-4 text-(--color-paper) lg:hidden">
+        {/* Frosted only where backdrop-filter is actually supported — the base
+            stays a solid ink bar so the wordmark never sits on bare cream. */}
+        <header
+          className={
+            "sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-(--color-paper)/10 " +
+            "bg-(--color-ink) px-4 text-(--color-paper) lg:hidden " +
+            // /90, not lower: the blur is only visible through whatever
+            // translucency the bar has, but at /75 the ink washed out to a
+            // grey. This keeps the bar reading as ink while content still
+            // blurs behind it.
+            "supports-[backdrop-filter]:bg-(--color-ink)/90 " +
+            "supports-[backdrop-filter]:backdrop-blur-xl"
+          }
+        >
           <button
             type="button"
             onClick={() => setDrawerOpen(true)}

@@ -249,21 +249,15 @@
     outline-offset: 2px;
   }
 
+  /* Scrollbars are hidden app-wide. Scrolling itself is untouched — wheel,
+     trackpad, touch, keyboard and drag all still work; only the painted bar
+     is gone, and it takes no layout width either. */
   * {
-    scrollbar-color: var(--color-sand) transparent;
-    scrollbar-width: thin;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
-  ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-  }
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  ::-webkit-scrollbar-thumb {
-    background-color: var(--color-sand);
-    border-radius: 999px;
-    border: 2px solid var(--color-cream);
+  *::-webkit-scrollbar {
+    display: none;
   }
 
   /* Default link colour only — any text-* utility on an <a> must win,
