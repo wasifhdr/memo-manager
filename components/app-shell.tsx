@@ -8,7 +8,7 @@ import { useGSAP } from "@gsap/react";
 import { PAGE_ROOT_ID, PageTransition } from "@/components/motion/page-transition";
 import { directionFor, setDirection } from "@/components/motion/route-direction";
 import { NAV, ADMIN_NAV, type NavItem } from "@/components/nav";
-import { IconChevronDown, IconChevronLeft, IconClose, IconLogout, IconMenu } from "@/components/ui/icons";
+import { IconChevronDown, IconChevronLeft, IconClose, IconLogout, IconMenu, IconShield } from "@/components/ui/icons";
 
 const COLLAPSE_KEY = "mm.sidebarCollapsed";
 
@@ -53,10 +53,16 @@ export function AppShell({
     try { localStorage.setItem(COLLAPSE_KEY, next ? "1" : "0"); } catch { /* ignore */ }
   }
 
-  // Landing on an admin route should always reveal that section.
+  // Landing on an admin route reveals that section — but only in the expanded
+  // rail. The collapsed rail always starts with the group shut.
   useEffect(() => {
-    if (isAdminRoute) setAdminOpen(true);
-  }, [isAdminRoute]);
+    if (isAdminRoute && !collapsed) setAdminOpen(true);
+  }, [isAdminRoute, collapsed]);
+
+  // Collapsing the sidebar collapses the admin group with it.
+  useEffect(() => {
+    if (collapsed) setAdminOpen(false);
+  }, [collapsed]);
 
   useEffect(() => { setDrawerOpen(false); }, [pathname]);
 
@@ -93,7 +99,14 @@ export function AppShell({
       duration: 0.19,
       ease: "power2.in",
       overwrite: true,
-      onComplete: () => router.push(href),
+      onComplete: () => {
+        // Reset the scroll while the outgoing page is still invisible, and tell
+        // Next not to do it itself. Its default scroll-to-top otherwise lands
+        // in the middle of the entrance tween and reads as a jump — most
+        // visible when leaving a long scrolled page for one higher in the nav.
+        window.scrollTo(0, 0);
+        router.push(href, { scroll: false });
+      },
     });
   });
 
@@ -208,7 +221,35 @@ export function AppShell({
             mini ? (
               <>
                 <div className="my-2 border-t border-(--color-paper)/10" />
-                {ADMIN_NAV.map((item) => navLink(item, true))}
+                <button
+                  type="button"
+                  onClick={() => setAdminOpen((v) => !v)}
+                  aria-expanded={adminOpen}
+                  aria-controls="sidebar-admin-section-mini"
+                  aria-label="Administration"
+                  title="Administration"
+                  // a bare chevron here reads as "expand the sidebar", so the
+                  // group is identified by its own glyph and shows open state
+                  // the same way an active nav item does
+                  className={`flex items-center justify-center rounded-[var(--radius-control)] py-2 transition-colors duration-150 ${
+                    adminOpen
+                      ? "bg-(--color-paper)/12 text-(--color-gold)"
+                      : "text-(--color-cream)/60 hover:bg-(--color-paper)/8 hover:text-(--color-paper)"
+                  }`}
+                >
+                  <IconShield className="size-4.5" />
+                </button>
+                <div
+                  className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${
+                    adminOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                  }`}
+                >
+                  <div className="overflow-hidden" inert={!adminOpen}>
+                    <div id="sidebar-admin-section-mini" className="flex flex-col gap-0.5 pt-0.5">
+                      {ADMIN_NAV.map((item) => navLink(item, true))}
+                    </div>
+                  </div>
+                </div>
               </>
             ) : (
               <>
@@ -224,11 +265,22 @@ export function AppShell({
                     className={`size-3.5 shrink-0 transition-transform duration-200 ${adminOpen ? "" : "-rotate-90"}`}
                   />
                 </button>
-                {adminOpen ? (
-                  <div id="sidebar-admin-section" className="flex flex-col gap-0.5">
-                    {ADMIN_NAV.map((item) => navLink(item, false))}
+                {/* Height-animated disclosure. The 0fr -> 1fr grid-row trick
+                    animates to intrinsic height without measuring it, so it
+                    works for both instances of this markup (desktop rail and
+                    mobile drawer) without a shared ref. `inert` keeps the
+                    collapsed links out of the tab order. */}
+                <div
+                  className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${
+                    adminOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                  }`}
+                >
+                  <div className="overflow-hidden" inert={!adminOpen}>
+                    <div id="sidebar-admin-section" className="flex flex-col gap-0.5 pt-0.5">
+                      {ADMIN_NAV.map((item) => navLink(item, false))}
+                    </div>
                   </div>
-                ) : null}
+                </div>
               </>
             )
           ) : null}

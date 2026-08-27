@@ -245,3 +245,12 @@ export function IconChevronLeft(props: SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+export function IconShield(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M8 2.3l4.4 1.8v3.5c0 2.7-1.8 4.8-4.4 5.9-2.6-1.1-4.4-3.2-4.4-5.9V4.1z" />
+      <path d="M6.2 7.9l1.3 1.3 2.4-2.7" />
+    </svg>
+  );
+}
