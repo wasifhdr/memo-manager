@@ -85,16 +85,16 @@ export function LogoUploadForm({ hasLogo }: { hasLogo: boolean }) {
         <div className="flex items-center gap-4">
           {hasLogo ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src="/api/org-logo" alt="" className="size-14 rounded-[var(--radius-md)] border border-(--border) object-contain" />
+            <img src="/api/org-logo" alt="" className="size-14 rounded-[var(--radius-control)] border border-(--color-sand) object-contain" />
           ) : (
-            <div className="flex size-14 items-center justify-center rounded-[var(--radius-md)] border border-dashed border-(--border-strong) text-[0.6875rem] text-(--text-faint)">
+            <div className="flex size-14 items-center justify-center rounded-[var(--radius-control)] border border-dashed border-(--color-ink) text-[0.6875rem] text-(--color-ink)/50">
               None
             </div>
           )}
           <form action={formAction} className="flex flex-1 flex-wrap items-center gap-2">
             <input
               type="file" name="logo" accept="image/png,image/jpeg,image/svg+xml"
-              className="flex-1 text-[0.8125rem] text-(--text-muted) file:mr-3 file:rounded-[var(--radius-sm)] file:border-0 file:bg-(--surface-sunken) file:px-3 file:py-1.5 file:text-[0.8125rem] file:font-medium file:text-(--text)"
+              className="flex-1 text-[0.8125rem] text-(--color-ink)/70 file:mr-3 file:rounded-[var(--radius-control)] file:border-0 file:bg-(--color-cream) file:px-3 file:py-1.5 file:text-[0.8125rem] file:font-medium file:text-(--color-ink)"
             />
             <Button type="submit" size="sm" variant="secondary" disabled={pending}>
               {pending ? 'Uploading…' : 'Upload'}
@@ -102,7 +102,7 @@ export function LogoUploadForm({ hasLogo }: { hasLogo: boolean }) {
           </form>
         </div>
         <FieldError>{state && 'error' in state ? state.error : undefined}</FieldError>
-        <p className="mt-2 text-[0.75rem] text-(--text-faint)">PNG, JPEG or SVG, up to 512 KB.</p>
+        <p className="mt-2 text-[0.75rem] text-(--color-ink)/50">PNG, JPEG or SVG, up to 512 KB.</p>
       </CardBody>
     </Card>
   )

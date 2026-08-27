@@ -19,7 +19,7 @@ export function CategoryRow({ cat }: { cat: Category }) {
 
   if (editing) {
     return (
-      <tr className="border-b border-(--border)">
+      <tr className="border-b border-(--color-sand)">
         <td className="px-4 py-3" colSpan={4}>
           <form action={updateFormAction} className="flex flex-wrap items-center gap-2">
             <input type="hidden" name="id" value={cat.id} />
@@ -29,7 +29,7 @@ export function CategoryRow({ cat }: { cat: Category }) {
             <Button type="button" size="sm" variant="ghost" onClick={() => setEditing(false)}>Cancel</Button>
           </form>
           {updateState && 'error' in updateState && updateState.error ? (
-            <p className="mt-1.5 text-[0.8125rem] text-(--st-rejected-fg)">{updateState.error}</p>
+            <p className="mt-1.5 text-[0.8125rem] text-(--color-red-deep)">{updateState.error}</p>
           ) : null}
         </td>
       </tr>
@@ -37,9 +37,9 @@ export function CategoryRow({ cat }: { cat: Category }) {
   }
 
   return (
-    <tr className="border-b border-(--border) last:border-b-0">
-      <td className="px-4 py-3 font-medium text-(--text)">{cat.name}</td>
-      <td className="px-4 py-3 text-(--text-muted)">{cat.description || '—'}</td>
+    <tr className="border-b border-(--color-sand) last:border-b-0">
+      <td className="px-4 py-3 font-medium text-(--color-ink)">{cat.name}</td>
+      <td className="px-4 py-3 text-(--color-ink)/70">{cat.description || '—'}</td>
       <td className="px-4 py-3">
         {cat.active ? <Badge>Active</Badge> : <Badge className="opacity-70">Inactive</Badge>}
       </td>

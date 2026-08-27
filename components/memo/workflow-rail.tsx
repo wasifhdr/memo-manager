@@ -32,46 +32,46 @@ const OUTCOME_META: Record<StepOutcome, { label: string; tone: 'done' | 'stopped
 
 function StepIcon({ outcome, isCurrent }: { outcome: StepOutcome; isCurrent: boolean }) {
   const cls = 'size-4'
-  if (outcome === 'approved' || outcome === 'reviewed') return <IconCheckCircle className={`${cls} text-(--st-approved-fg)`} />
-  if (outcome === 'rejected') return <IconXCircle className={`${cls} text-(--st-rejected-fg)`} />
-  if (outcome === 'changes_requested') return <IconEdit className={`${cls} text-(--st-changes-fg)`} />
-  if (outcome === 'skipped') return <IconSlashCircle className={`${cls} text-(--text-faint)`} />
-  return <IconClock className={`${cls} ${isCurrent ? 'text-(--accent)' : 'text-(--text-faint)'}`} />
+  if (outcome === 'approved' || outcome === 'reviewed') return <IconCheckCircle className={`${cls} text-(--color-green-deep)`} />
+  if (outcome === 'rejected') return <IconXCircle className={`${cls} text-(--color-red-deep)`} />
+  if (outcome === 'changes_requested') return <IconEdit className={`${cls} text-(--color-gold-deep)`} />
+  if (outcome === 'skipped') return <IconSlashCircle className={`${cls} text-(--color-ink)/50`} />
+  return <IconClock className={`${cls} ${isCurrent ? 'text-(--color-orange-deep)' : 'text-(--color-ink)/50'}`} />
 }
 
 function StepCard({ step, isCurrent }: { step: RailStep; isCurrent: boolean }) {
   const meta = OUTCOME_META[step.outcome]
-  const base = 'flex-1 min-w-0 rounded-[var(--radius-md)] border px-3.5 py-3 transition-colors'
+  const base = 'flex-1 min-w-0 rounded-[var(--radius-control)] px-3.5 py-3 transition-colors'
   const toneClass = isCurrent
-    ? 'border-(--accent) bg-(--accent-tint) shadow-[var(--shadow-sm)]'
+    ? 'border-2 border-(--color-orange-deep) bg-(--color-orange)/10 shadow-offset-sm'
     : meta.tone === 'stopped'
-      ? 'border-(--border) bg-(--surface-sunken) opacity-70'
+      ? 'border border-(--color-sand) bg-(--color-cream) opacity-70'
       : meta.tone === 'pending'
-        ? 'border-dashed border-(--border) bg-(--surface) opacity-60'
-        : 'border-(--border) bg-(--surface)'
+        ? 'border border-dashed border-(--color-sand) bg-(--color-paper) opacity-60'
+        : 'border border-(--color-sand) bg-(--color-paper)'
 
   return (
     <div className={`${base} ${toneClass}`}>
       <div className="flex items-start gap-2">
         <StepIcon outcome={step.outcome} isCurrent={isCurrent} />
         <div className="min-w-0 flex-1">
-          <p className={`truncate text-[0.8125rem] font-semibold ${isCurrent ? 'text-(--accent)' : 'text-(--text)'}`}>
+          <p className={`truncate text-[0.8125rem] font-bold ${isCurrent ? 'text-(--color-orange-deep)' : 'text-(--color-ink)'}`}>
             {step.positionTitle || `Step ${step.stepNo}`}
           </p>
-          <p className="truncate text-[0.75rem] text-(--text-muted)">{step.assigneeName}</p>
-          <p className="mt-1 text-[0.6875rem] font-medium uppercase tracking-wide text-(--text-faint)">
+          <p className="truncate text-[0.75rem] text-(--color-ink)/70">{step.assigneeName}</p>
+          <p className="mt-1 text-label uppercase text-(--color-ink)/50">
             {isCurrent
               ? `Needs ${step.requiredAction === 'review' ? 'review' : 'approval'} now`
               : meta.label}
           </p>
           {step.outcome !== 'pending' && step.actedAt ? (
-            <p className="mt-1 text-[0.6875rem] text-(--text-faint)">
+            <p className="mt-1 text-[0.6875rem] text-(--color-ink)/50">
               {step.actedByName}
               {step.onBehalfOfName ? ` (on behalf of ${step.onBehalfOfName})` : ''} · {fmtTime(step.actedAt)}
             </p>
           ) : null}
           {step.comment ? (
-            <p className="mt-1.5 text-[0.75rem] text-(--text-muted)">&ldquo;{step.comment}&rdquo;</p>
+            <p className="mt-1.5 text-[0.75rem] text-(--color-ink)/70">&ldquo;{step.comment}&rdquo;</p>
           ) : null}
         </div>
       </div>
@@ -104,13 +104,13 @@ export function WorkflowRail({
 
       {previous.length > 0 ? (
         <details className="mt-4 group">
-          <summary className="cursor-pointer text-[0.75rem] font-medium text-(--text-faint) hover:text-(--text-muted)">
+          <summary className="cursor-pointer text-[0.75rem] font-bold text-(--color-ink)/50 hover:text-(--color-ink)/70">
             Previous rounds ({previous.length})
           </summary>
           <div className="mt-3 flex flex-col gap-4">
             {previous.map((c) => (
               <div key={c.cycle}>
-                <p className="mb-2 text-[0.6875rem] font-semibold uppercase tracking-wide text-(--text-faint)">
+                <p className="mb-2 text-label uppercase text-(--color-ink)/50">
                   Round {c.cycle}
                 </p>
                 <div className="flex flex-col gap-2 md:flex-row md:items-stretch">

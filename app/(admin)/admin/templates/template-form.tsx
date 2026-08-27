@@ -50,19 +50,19 @@ export function TemplateForm({
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
-          <label className="mb-1.5 block text-[0.8125rem] font-medium text-(--text)" htmlFor="tpl-name">Template name</label>
+          <label className="mb-1.5 block text-[0.8125rem] font-medium text-(--color-ink)" htmlFor="tpl-name">Template name</label>
           <Input id="tpl-name" name="name" value={name} onChange={(e) => setName(e.target.value)} required placeholder="e.g. Purchase Request" />
         </div>
         <div>
-          <label className="mb-1.5 block text-[0.8125rem] font-medium text-(--text)" htmlFor="tpl-desc">Description (optional)</label>
+          <label className="mb-1.5 block text-[0.8125rem] font-medium text-(--color-ink)" htmlFor="tpl-desc">Description (optional)</label>
           <Input id="tpl-desc" name="description" value={description} onChange={(e) => setDescription(e.target.value)} />
         </div>
       </div>
 
       <div className="flex flex-col gap-2">
         {steps.map((step, i) => (
-          <div key={i} className="flex items-center gap-2 rounded-[var(--radius-md)] border border-(--border) bg-(--surface) p-2.5">
-            <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-(--surface-sunken) font-mono-nums text-[0.75rem] font-semibold text-(--text-muted)">
+          <div key={i} className="flex items-center gap-2 rounded-[var(--radius-control)] border border-(--color-sand) bg-(--color-paper) p-2.5">
+            <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-(--color-cream) font-mono-nums text-[0.75rem] font-semibold text-(--color-ink)/70">
               {i + 1}
             </span>
             <Input
@@ -78,9 +78,9 @@ export function TemplateForm({
               className="h-9 w-32"
             />
             <div className="flex shrink-0 gap-1">
-              <button type="button" onClick={() => move(i, -1)} disabled={i === 0} className="flex size-7 items-center justify-center rounded-[var(--radius-sm)] text-(--text-faint) hover:bg-(--surface-sunken) disabled:opacity-30">↑</button>
-              <button type="button" onClick={() => move(i, 1)} disabled={i === steps.length - 1} className="flex size-7 items-center justify-center rounded-[var(--radius-sm)] text-(--text-faint) hover:bg-(--surface-sunken) disabled:opacity-30">↓</button>
-              <button type="button" onClick={() => removeStep(i)} className="flex size-7 items-center justify-center rounded-[var(--radius-sm)] text-(--st-rejected-fg) hover:bg-(--surface-sunken)">✕</button>
+              <button type="button" onClick={() => move(i, -1)} disabled={i === 0} className="flex size-7 items-center justify-center rounded-[var(--radius-control)] text-(--color-ink)/50 hover:bg-(--color-cream) disabled:opacity-30">↑</button>
+              <button type="button" onClick={() => move(i, 1)} disabled={i === steps.length - 1} className="flex size-7 items-center justify-center rounded-[var(--radius-control)] text-(--color-ink)/50 hover:bg-(--color-cream) disabled:opacity-30">↓</button>
+              <button type="button" onClick={() => removeStep(i)} className="flex size-7 items-center justify-center rounded-[var(--radius-control)] text-(--color-red-deep) hover:bg-(--color-cream)">✕</button>
             </div>
           </div>
         ))}

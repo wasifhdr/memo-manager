@@ -60,7 +60,7 @@ export function NewMemoForm({
             <Button type="submit" disabled={pending}>
               {pending ? 'Creating…' : 'Save draft'}
             </Button>
-            <p className="mt-2 text-[0.75rem] text-(--text-faint)">
+            <p className="mt-2 text-[0.75rem] text-(--color-ink)/50">
               You will add workflow participants and attachments on the next screen.
             </p>
           </div>

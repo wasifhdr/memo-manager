@@ -22,8 +22,8 @@ export function ActionPanel({
   return (
     <div className="flex flex-col gap-4">
       {canAct && requiredAction ? (
-        <div className="rounded-[var(--radius-lg)] border border-(--accent) bg-(--accent-tint) p-4">
-          <p className="mb-3 text-[0.8125rem] font-semibold text-(--accent)">
+        <div className="rounded-[var(--radius-card)] border-2 border-(--color-gold-deep)/50 bg-(--color-gold)/10 p-4">
+          <p className="mb-3 text-[0.8125rem] font-bold text-(--color-gold-deep)">
             {actingForName ? `You are acting on behalf of ${actingForName}.` : 'This memo is waiting on your decision.'}
           </p>
           <DecisionForm memoId={memoId} requiredAction={requiredAction} />
@@ -101,7 +101,7 @@ function ReasonModal({
       <form action={formAction} className="flex flex-col gap-3">
         <input type="hidden" name="memoId" value={memoId} />
         <input type="hidden" name="action" value={action} />
-        <p className="text-[0.8125rem] text-(--text-muted)">{description}</p>
+        <p className="text-[0.8125rem] text-(--color-ink)/70">{description}</p>
         <Textarea
           name="comment" required rows={4} autoFocus
           value={comment} onChange={(e) => setComment(e.target.value)}
@@ -127,8 +127,8 @@ function CommentForm({ memoId }: { memoId: string }) {
   const [text, setText] = useState('')
 
   return (
-    <form action={formAction} className="rounded-[var(--radius-lg)] border border-(--border) bg-(--surface) p-4">
-      <p className="mb-2 text-[0.8125rem] font-semibold text-(--text)">Add a comment</p>
+    <form action={formAction} className="rounded-[var(--radius-card)] border border-(--color-sand) bg-(--color-paper) p-4">
+      <p className="mb-2 text-[0.8125rem] font-bold text-(--color-ink)">Add a comment</p>
       <input type="hidden" name="memoId" value={memoId} />
       <input type="hidden" name="action" value="comment" />
       <Textarea

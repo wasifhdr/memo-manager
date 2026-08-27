@@ -12,14 +12,14 @@ export function RegisterForm() {
   )
 
   return (
-    <form action={formAction} className="rounded-[var(--radius-lg)] border border-(--border) bg-(--surface) p-6 shadow-[var(--shadow-sm)]">
-      <h1 className="mb-1 text-xl font-semibold text-(--text) font-serif-heading">Register your organization</h1>
-      <p className="mb-5 text-sm text-(--text-muted)">
+    <form action={formAction} className="rounded-[var(--radius-card)] border border-(--color-sand) bg-(--color-paper) p-6 shadow-offset-sm">
+      <h1 className="mb-1 font-display text-2xl font-bold text-(--color-ink)">Register your organization</h1>
+      <p className="mb-5 text-sm text-(--color-ink)/70">
         This creates your organization and its first administrator account.
       </p>
 
       <fieldset className="mb-5 flex flex-col gap-4">
-        <legend className="mb-1 text-[0.75rem] font-semibold uppercase tracking-wide text-(--text-faint)">
+        <legend className="mb-1 text-[0.75rem] font-semibold uppercase tracking-wide text-(--color-ink)/50">
           Organization
         </legend>
         <div>
@@ -39,7 +39,7 @@ export function RegisterForm() {
       </fieldset>
 
       <fieldset className="mb-5 flex flex-col gap-4">
-        <legend className="mb-1 text-[0.75rem] font-semibold uppercase tracking-wide text-(--text-faint)">
+        <legend className="mb-1 text-[0.75rem] font-semibold uppercase tracking-wide text-(--color-ink)/50">
           Administrator account
         </legend>
         <div>
@@ -62,9 +62,9 @@ export function RegisterForm() {
         {pending ? 'Creating organization…' : 'Create organization'}
       </Button>
 
-      <p className="mt-5 text-center text-[0.8125rem] text-(--text-muted)">
+      <p className="mt-5 text-center text-[0.8125rem] text-(--color-ink)/70">
         Already have an account?{' '}
-        <Link href="/login" className="text-(--accent) hover:underline">
+        <Link href="/login" className="text-(--color-orange-deep) hover:underline">
           Sign in
         </Link>
       </p>

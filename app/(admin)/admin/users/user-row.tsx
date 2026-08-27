@@ -41,7 +41,7 @@ export function UserRow({
 
   if (editing) {
     return (
-      <tr className="border-b border-(--border)">
+      <tr className="border-b border-(--color-sand)">
         <td className="px-4 py-3" colSpan={7}>
           <form action={updAction} className="flex flex-wrap items-end gap-2">
             <input type="hidden" name="id" value={user.id} />
@@ -56,7 +56,7 @@ export function UserRow({
             <Button type="button" size="sm" variant="ghost" onClick={() => setEditing(false)}>Cancel</Button>
           </form>
           {updState && 'error' in updState && updState.error ? (
-            <p className="mt-1.5 text-[0.8125rem] text-(--st-rejected-fg)">{updState.error}</p>
+            <p className="mt-1.5 text-[0.8125rem] text-(--color-red-deep)">{updState.error}</p>
           ) : null}
         </td>
       </tr>
@@ -64,20 +64,20 @@ export function UserRow({
   }
 
   return (
-    <tr className="border-b border-(--border) last:border-b-0 align-top">
+    <tr className="border-b border-(--color-sand) last:border-b-0 align-top">
       <td className="px-4 py-3">
-        <div className="font-medium text-(--text)">{user.name}</div>
-        <div className="text-[0.8125rem] text-(--text-faint)">{user.email}</div>
+        <div className="font-medium text-(--color-ink)">{user.name}</div>
+        <div className="text-[0.8125rem] text-(--color-ink)/50">{user.email}</div>
       </td>
-      <td className="px-4 py-3 text-(--text-muted)">{user.designation || '—'}</td>
-      <td className="px-4 py-3 text-(--text-muted)">{user.departmentName || '—'}</td>
+      <td className="px-4 py-3 text-(--color-ink)/70">{user.designation || '—'}</td>
+      <td className="px-4 py-3 text-(--color-ink)/70">{user.departmentName || '—'}</td>
       <td className="px-4 py-3">
         <Badge>{user.role === 'org_admin' ? 'Admin' : 'Member'}</Badge>
       </td>
       <td className="px-4 py-3">
         {user.status === 'active' ? <Badge>Active</Badge> : <Badge className="opacity-70">Inactive</Badge>}
       </td>
-      <td className="px-4 py-3 text-(--text-faint)">
+      <td className="px-4 py-3 text-(--color-ink)/50">
         {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : 'Never'}
       </td>
       <td className="px-4 py-3">
@@ -96,7 +96,7 @@ export function UserRow({
           </form>
         </div>
         {resetUrl ? (
-          <p className="mt-1.5 max-w-[16rem] text-right font-mono-nums text-[0.75rem] break-all text-(--accent)">
+          <p className="mt-1.5 max-w-[16rem] text-right font-mono-nums text-[0.75rem] break-all text-(--color-orange-deep)">
             {resetUrl}
           </p>
         ) : null}

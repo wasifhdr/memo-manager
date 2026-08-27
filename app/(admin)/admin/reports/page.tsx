@@ -78,7 +78,7 @@ export default async function ReportsPage({
           <Select id="status" name="status" defaultValue={sp.status ?? ''} placeholder="Any" options={STATUS_OPTIONS} className="w-44" />
         </div>
         <Button type="submit" variant="secondary" size="sm">Apply</Button>
-        {hasFilter ? <a href="/admin/reports" className="text-[0.8125rem] text-(--text-faint) hover:text-(--text-muted)">Clear</a> : null}
+        {hasFilter ? <a href="/admin/reports" className="text-[0.8125rem] text-(--color-ink)/50 hover:text-(--color-ink)/70">Clear</a> : null}
       </form>
 
       <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -86,11 +86,11 @@ export default async function ReportsPage({
         <StatTile label="Pending approvals" value={report.pendingApprovals} />
         <StatTile label="Rejected" value={report.rejectedCount} />
         <StatTile label="Change requests" value={report.changeRequestCount} />
-        <div className="col-span-2 rounded-[var(--radius-lg)] border border-(--border) bg-(--surface) px-4 py-3.5 sm:col-span-4">
-          <p className="font-mono-nums text-2xl font-semibold text-(--text)">
+        <div className="col-span-2 rounded-[var(--radius-card)] border border-(--color-sand) bg-(--color-paper) px-4 py-3.5 sm:col-span-4">
+          <p className="font-mono-nums text-2xl font-semibold text-(--color-ink)">
             {report.avgCompletionHours != null ? `${report.avgCompletionHours.toFixed(1)}h` : '—'}
           </p>
-          <p className="mt-0.5 text-[0.75rem] text-(--text-faint)">Average workflow completion time</p>
+          <p className="mt-0.5 text-[0.75rem] text-(--color-ink)/50">Average workflow completion time</p>
         </div>
       </div>
 
@@ -100,7 +100,7 @@ export default async function ReportsPage({
           <CardBody>
             <dl className="flex flex-col gap-2 text-[0.8125rem]">
               {report.byStatus.map((r) => (
-                <a key={r.status} href={searchHref({ status: r.status })} className="flex items-center justify-between hover:text-(--accent)">
+                <a key={r.status} href={searchHref({ status: r.status })} className="flex items-center justify-between hover:text-(--color-orange-deep)">
                   <StatusBadge status={r.status} />
                   <span className="font-mono-nums font-medium">{r.count}</span>
                 </a>
@@ -115,8 +115,8 @@ export default async function ReportsPage({
             <dl className="flex flex-col gap-2 text-[0.8125rem]">
               {report.byDepartment.map((r) => (
                 <div key={r.department} className="flex items-center justify-between">
-                  <dt className="text-(--text-muted)">{r.department}</dt>
-                  <dd className="font-mono-nums font-medium text-(--text)">{r.count}</dd>
+                  <dt className="text-(--color-ink)/70">{r.department}</dt>
+                  <dd className="font-mono-nums font-medium text-(--color-ink)">{r.count}</dd>
                 </div>
               ))}
             </dl>
@@ -129,8 +129,8 @@ export default async function ReportsPage({
             <dl className="flex flex-col gap-2 text-[0.8125rem]">
               {report.byCategory.map((r) => (
                 <div key={r.category} className="flex items-center justify-between">
-                  <dt className="text-(--text-muted)">{r.category}</dt>
-                  <dd className="font-mono-nums font-medium text-(--text)">{r.count}</dd>
+                  <dt className="text-(--color-ink)/70">{r.category}</dt>
+                  <dd className="font-mono-nums font-medium text-(--color-ink)">{r.count}</dd>
                 </div>
               ))}
             </dl>

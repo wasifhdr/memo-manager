@@ -1,30 +1,29 @@
 import { type ButtonHTMLAttributes, type AnchorHTMLAttributes, forwardRef } from "react";
 import Link from "next/link";
 
-type Variant = "primary" | "secondary" | "ghost" | "danger";
-type Size = "sm" | "md" | "lg";
+type Variant = "default" | "secondary" | "primary" | "ink" | "danger" | "ghost" | "danger-ghost";
+type Size = "md" | "sm";
 
 const base =
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[var(--radius-sm)] " +
-  "font-medium transition-colors duration-150 disabled:pointer-events-none disabled:opacity-45 " +
-  "cursor-pointer disabled:cursor-not-allowed";
+  "inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] font-bold " +
+  "transition-[transform,box-shadow,background-color] duration-100 " +
+  "focus-visible:outline-[3px] focus-visible:outline-(--color-ink) focus-visible:outline-offset-2 " +
+  "disabled:pointer-events-none disabled:border-(--color-ink)/30 disabled:bg-(--color-sand)/40 " +
+  "disabled:text-(--color-ink)/50 disabled:shadow-none cursor-pointer";
 
-const sizes: Record<Size, string> = {
-  sm: "h-8 px-3 text-[0.8125rem]",
-  md: "h-10 px-4 text-sm",
-  lg: "h-12 px-5 text-[0.9375rem]",
+const sized: Record<Size, string> = {
+  md: "px-4 py-2 text-[15px] shadow-offset border-2 border-(--color-ink) active:translate-x-[3px] active:translate-y-[3px] active:shadow-none",
+  sm: "px-3 py-1.5 text-sm shadow-offset-sm border-2 border-(--color-ink) active:translate-x-[2px] active:translate-y-[2px] active:shadow-none",
 };
 
 const variants: Record<Variant, string> = {
-  primary:
-    "bg-(--accent) text-(--text-on-accent) shadow-[var(--shadow-sm)] " +
-    "hover:bg-(--accent-hover) active:bg-(--accent-active)",
-  secondary:
-    "bg-(--surface) text-(--text) border border-(--border-strong) shadow-[var(--shadow-sm)] " +
-    "hover:bg-(--surface-sunken)",
-  ghost: "bg-transparent text-(--text-muted) hover:bg-(--surface-sunken) hover:text-(--text)",
-  danger:
-    "bg-(--st-rejected-fg) text-white shadow-[var(--shadow-sm)] hover:brightness-110 active:brightness-95",
+  default: "bg-(--color-paper) text-(--color-ink) hover:bg-(--color-cream)",
+  secondary: "bg-(--color-paper) text-(--color-ink) hover:bg-(--color-cream)",
+  primary: "bg-(--color-orange) text-white hover:bg-(--color-orange-deep)",
+  ink: "bg-(--color-ink) text-(--color-paper) hover:bg-(--color-ink)/85",
+  danger: "bg-(--color-red) text-white hover:bg-(--color-red-deep)",
+  ghost: "border-transparent! shadow-none! bg-transparent text-(--color-ink)/70 hover:bg-(--color-cream) hover:text-(--color-ink) active:translate-x-0! active:translate-y-0!",
+  "danger-ghost": "border-transparent! shadow-none! bg-transparent text-(--color-red-deep) hover:bg-(--color-red)/10 active:translate-x-0! active:translate-y-0!",
 };
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -39,7 +38,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
   return (
     <button
       ref={ref}
-      className={`${base} ${sizes[size]} ${variants[variant]} ${className}`}
+      className={`${base} ${sized[size]} ${variants[variant]} ${className}`}
       {...props}
     />
   );
@@ -61,7 +60,7 @@ export function LinkButton({
   return (
     <Link
       href={href}
-      className={`${base} ${sizes[size]} ${variants[variant]} ${className}`}
+      className={`${base} ${sized[size]} ${variants[variant]} ${className}`}
       {...props}
     />
   );

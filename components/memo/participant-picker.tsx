@@ -66,7 +66,7 @@ export function ParticipantPicker({
     <div>
       {templates.length > 0 ? (
         <div className="mb-4">
-          <label htmlFor={`${formId}-template`} className="mb-1.5 block text-[0.8125rem] font-medium text-(--text)">
+          <label htmlFor={`${formId}-template`} className="mb-1.5 block text-label uppercase text-(--color-ink)/70">
             Start from a template
           </label>
           <Select
@@ -82,8 +82,8 @@ export function ParticipantPicker({
 
       <div className="flex flex-col gap-2">
         {steps.map((step, i) => (
-          <div key={i} className="flex flex-wrap items-center gap-2 rounded-[var(--radius-md)] border border-(--border) bg-(--surface) p-2.5">
-            <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-(--surface-sunken) font-mono-nums text-[0.75rem] font-semibold text-(--text-muted)">
+          <div key={i} className="flex flex-wrap items-center gap-2 rounded-[var(--radius-control)] border border-(--color-sand) bg-(--color-paper) p-2.5">
+            <span className="flex size-6 shrink-0 items-center justify-center rounded-[var(--radius-pill)] bg-(--color-cream) font-mono-nums text-[0.75rem] font-bold text-(--color-ink)/70">
               {i + 1}
             </span>
             <Input
@@ -106,9 +106,9 @@ export function ParticipantPicker({
               className="h-9 w-32"
             />
             <div className="ml-auto flex shrink-0 gap-1">
-              <button type="button" onClick={() => move(i, -1)} disabled={i === 0} className="flex size-7 items-center justify-center rounded-[var(--radius-sm)] text-(--text-faint) hover:bg-(--surface-sunken) disabled:opacity-30">↑</button>
-              <button type="button" onClick={() => move(i, 1)} disabled={i === steps.length - 1} className="flex size-7 items-center justify-center rounded-[var(--radius-sm)] text-(--text-faint) hover:bg-(--surface-sunken) disabled:opacity-30">↓</button>
-              <button type="button" onClick={() => removeStep(i)} className="flex size-7 items-center justify-center rounded-[var(--radius-sm)] text-(--st-rejected-fg) hover:bg-(--surface-sunken)">✕</button>
+              <button type="button" onClick={() => move(i, -1)} disabled={i === 0} className="flex size-7 items-center justify-center rounded-[var(--radius-dot)] text-(--color-ink)/50 hover:bg-(--color-cream) disabled:opacity-30">↑</button>
+              <button type="button" onClick={() => move(i, 1)} disabled={i === steps.length - 1} className="flex size-7 items-center justify-center rounded-[var(--radius-dot)] text-(--color-ink)/50 hover:bg-(--color-cream) disabled:opacity-30">↓</button>
+              <button type="button" onClick={() => removeStep(i)} className="flex size-7 items-center justify-center rounded-[var(--radius-dot)] text-(--color-red-deep) hover:bg-(--color-cream)">✕</button>
             </div>
           </div>
         ))}
@@ -126,7 +126,7 @@ export function ParticipantPicker({
       </div>
       <FieldError>{state && 'error' in state ? state.error : undefined}</FieldError>
       {!canSubmit && steps.length > 0 ? (
-        <p className="mt-1 text-[0.75rem] text-(--text-faint)">Give every step a position and an assignee before saving.</p>
+        <p className="mt-1 text-[0.75rem] text-(--color-ink)/50">Give every step a position and an assignee before saving.</p>
       ) : null}
     </div>
   )

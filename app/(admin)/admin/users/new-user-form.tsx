@@ -22,7 +22,7 @@ export function NewUserForm({ departments }: { departments: { value: string; lab
 
   return (
     <>
-      <form ref={formRef} action={formAction} className="mb-6 grid gap-3 rounded-[var(--radius-lg)] border border-(--border) bg-(--surface) p-4 sm:grid-cols-2 lg:grid-cols-5">
+      <form ref={formRef} action={formAction} className="mb-6 grid gap-3 rounded-[var(--radius-card)] border border-(--color-sand) bg-(--color-paper) p-4 sm:grid-cols-2 lg:grid-cols-5">
         <div>
           <Label htmlFor="name">Name</Label>
           <Input id="name" name="name" required />
@@ -61,17 +61,17 @@ export function NewUserForm({ departments }: { departments: { value: string; lab
         footer={<Button onClick={() => setCredentials(null)}>Done</Button>}
       >
         {credentials ? (
-          <div className="text-sm text-(--text)">
-            <p className="mb-3 text-(--text-muted)">
+          <div className="text-sm text-(--color-ink)">
+            <p className="mb-3 text-(--color-ink)/70">
               Share these credentials with the new user. This password is shown only once.
             </p>
-            <dl className="space-y-2 rounded-[var(--radius-md)] bg-(--surface-sunken) p-3 font-mono-nums text-[0.8125rem]">
+            <dl className="space-y-2 rounded-[var(--radius-control)] bg-(--color-cream) p-3 font-mono-nums text-[0.8125rem]">
               <div className="flex justify-between gap-4">
-                <dt className="text-(--text-faint)">Email</dt>
+                <dt className="text-(--color-ink)/50">Email</dt>
                 <dd>{credentials.email}</dd>
               </div>
               <div className="flex justify-between gap-4">
-                <dt className="text-(--text-faint)">Password</dt>
+                <dt className="text-(--color-ink)/50">Password</dt>
                 <dd>{credentials.password}</dd>
               </div>
             </dl>

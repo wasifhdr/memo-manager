@@ -70,7 +70,7 @@ export function EditMemoForm({
         </form>
 
         {canDelete ? (
-          <form action={deleteAction} className="border-t border-(--border) pt-4">
+          <form action={deleteAction} className="border-t border-(--color-sand) pt-4">
             <input type="hidden" name="id" value={memo.id} />
             <Button type="submit" variant="danger" size="sm" disabled={deletePending}>
               {deletePending ? 'Deleting…' : 'Delete draft'}

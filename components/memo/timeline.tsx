@@ -46,17 +46,17 @@ const ICON: Record<EventType, typeof IconClock> = {
 }
 
 const TONE: Record<EventType, string> = {
-  created: 'text-(--text-faint)', submitted: 'text-(--st-pending-fg)', resubmitted: 'text-(--st-pending-fg)',
-  approved: 'text-(--st-approved-fg)', reviewed: 'text-(--st-approved-fg)', rejected: 'text-(--st-rejected-fg)',
-  changes_requested: 'text-(--st-changes-fg)', comment: 'text-(--text-faint)', forwarded: 'text-(--text-faint)',
-  completed: 'text-(--st-approved-fg)', cancelled: 'text-(--text-faint)',
-  attachment_added: 'text-(--text-faint)', attachment_deleted: 'text-(--text-faint)',
-  version_created: 'text-(--st-changes-fg)', participant_assigned: 'text-(--text-faint)', edited: 'text-(--text-faint)',
+  created: 'text-(--color-ink)/50', submitted: 'text-(--color-gold-deep)', resubmitted: 'text-(--color-gold-deep)',
+  approved: 'text-(--color-green-deep)', reviewed: 'text-(--color-green-deep)', rejected: 'text-(--color-red-deep)',
+  changes_requested: 'text-(--color-gold-deep)', comment: 'text-(--color-ink)/50', forwarded: 'text-(--color-ink)/50',
+  completed: 'text-(--color-green-deep)', cancelled: 'text-(--color-ink)/50',
+  attachment_added: 'text-(--color-ink)/50', attachment_deleted: 'text-(--color-ink)/50',
+  version_created: 'text-(--color-gold-deep)', participant_assigned: 'text-(--color-ink)/50', edited: 'text-(--color-ink)/50',
 }
 
 export function Timeline({ events }: { events: TimelineEvent[] }) {
   if (events.length === 0) {
-    return <p className="text-[0.8125rem] text-(--text-faint)">No activity yet.</p>
+    return <p className="text-[0.8125rem] text-(--color-ink)/50">No activity yet.</p>
   }
 
   return (
@@ -66,21 +66,21 @@ export function Timeline({ events }: { events: TimelineEvent[] }) {
         return (
           <li key={e.id} className="relative flex gap-3 pb-5 last:pb-0">
             {i < events.length - 1 ? (
-              <span className="absolute left-[0.5625rem] top-5 bottom-0 w-px bg-(--border)" />
+              <span className="absolute left-[0.5625rem] top-5 bottom-0 w-px bg-(--color-sand)" />
             ) : null}
-            <span className={`z-10 flex size-[1.125rem] shrink-0 items-center justify-center rounded-full bg-(--surface) ${TONE[e.type]}`}>
+            <span className={`z-10 flex size-[1.125rem] shrink-0 items-center justify-center rounded-[var(--radius-pill)] bg-(--color-paper) ${TONE[e.type]}`}>
               <Icon className="size-3.5" />
             </span>
             <div className="min-w-0 flex-1 pt-0.5">
-              <p className="text-[0.8125rem] text-(--text)">
-                <span className="font-medium">{e.actorName ?? 'System'}</span>{' '}
-                {e.onBehalfOfName ? <span className="text-(--text-muted)">(on behalf of {e.onBehalfOfName}) </span> : null}
+              <p className="text-[0.8125rem] text-(--color-ink)">
+                <span className="font-bold">{e.actorName ?? 'System'}</span>{' '}
+                {e.onBehalfOfName ? <span className="text-(--color-ink)/70">(on behalf of {e.onBehalfOfName}) </span> : null}
                 {VERB[e.type]}
-                {e.detail && e.type !== 'created' ? <span className="text-(--text-muted)"> — {e.detail}</span> : null}
+                {e.detail && e.type !== 'created' ? <span className="text-(--color-ink)/70"> — {e.detail}</span> : null}
               </p>
-              <p className="mt-0.5 font-mono-nums text-[0.6875rem] text-(--text-faint)">{fmtTime(e.createdAt)}</p>
+              <p className="mt-0.5 font-mono-nums text-[0.6875rem] text-(--color-ink)/50">{fmtTime(e.createdAt)}</p>
               {e.comment ? (
-                <p className="mt-1.5 rounded-[var(--radius-sm)] bg-(--surface-sunken) px-2.5 py-1.5 text-[0.8125rem] text-(--text-muted)">
+                <p className="mt-1.5 rounded-[var(--radius-control)] bg-(--color-cream) px-2.5 py-1.5 text-[0.8125rem] text-(--color-ink)/70">
                   &ldquo;{e.comment}&rdquo;
                 </p>
               ) : null}

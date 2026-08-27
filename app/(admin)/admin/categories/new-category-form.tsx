@@ -17,7 +17,7 @@ export function NewCategoryForm() {
       className="mb-5 flex flex-wrap items-end gap-2"
     >
       <div>
-        <label className="mb-1.5 block text-[0.8125rem] font-medium text-(--text)" htmlFor="new-cat-name">
+        <label className="mb-1.5 block text-[0.8125rem] font-medium text-(--color-ink)" htmlFor="new-cat-name">
           New category
         </label>
         <Input id="new-cat-name" name="name" placeholder="Category name" required className="w-56" />

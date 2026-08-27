@@ -80,7 +80,7 @@ export function ChangePasswordForm() {
             <Input id="confirm" name="confirm" type="password" autoComplete="new-password" minLength={10} required />
           </div>
           <FieldError>{state && 'error' in state ? state.error : undefined}</FieldError>
-          <p className="text-[0.75rem] text-(--text-faint)">
+          <p className="text-[0.75rem] text-(--color-ink)/50">
             Changing your password signs you out everywhere else.
           </p>
           <div>

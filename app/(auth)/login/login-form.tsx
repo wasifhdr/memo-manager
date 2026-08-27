@@ -10,9 +10,9 @@ export function LoginForm({ next }: { next?: string }) {
   const [state, formAction, pending] = useActionState<ActionState, FormData>(loginAction, undefined)
 
   return (
-    <form action={formAction} className="rounded-[var(--radius-lg)] border border-(--border) bg-(--surface) p-6 shadow-[var(--shadow-sm)]">
-      <h1 className="mb-1 text-xl font-semibold text-(--text) font-serif-heading">Sign in</h1>
-      <p className="mb-5 text-sm text-(--text-muted)">Enter your workspace credentials.</p>
+    <form action={formAction} className="rounded-[var(--radius-card)] border border-(--color-sand) bg-(--color-paper) p-6 shadow-offset-sm">
+      <h1 className="mb-1 font-display text-2xl font-bold text-(--color-ink)">Sign in</h1>
+      <p className="mb-5 text-sm text-(--color-ink)/70">Enter your workspace credentials.</p>
 
       {next ? <input type="hidden" name="next" value={next} /> : null}
 
@@ -24,7 +24,7 @@ export function LoginForm({ next }: { next?: string }) {
       <div className="mb-2">
         <div className="flex items-baseline justify-between">
           <Label htmlFor="password">Password</Label>
-          <Link href="/forgot-password" className="text-[0.8125rem] text-(--accent) hover:underline">
+          <Link href="/forgot-password" className="text-[0.8125rem] text-(--color-orange-deep) hover:underline">
             Forgot password?
           </Link>
         </div>
@@ -37,9 +37,9 @@ export function LoginForm({ next }: { next?: string }) {
         {pending ? 'Signing in…' : 'Sign in'}
       </Button>
 
-      <p className="mt-5 text-center text-[0.8125rem] text-(--text-muted)">
+      <p className="mt-5 text-center text-[0.8125rem] text-(--color-ink)/70">
         New organization?{' '}
-        <Link href="/register-organization" className="text-(--accent) hover:underline">
+        <Link href="/register-organization" className="text-(--color-orange-deep) hover:underline">
           Register it here
         </Link>
       </p>

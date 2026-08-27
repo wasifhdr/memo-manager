@@ -29,19 +29,21 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           <div
             key={t.id}
             role="status"
-            className="pointer-events-auto flex w-full max-w-sm items-start gap-2.5 rounded-[var(--radius-md)] border border-(--border) bg-(--surface-raised) px-4 py-3 text-sm text-(--text) shadow-[var(--shadow-lg)]"
+            className={`pointer-events-auto flex w-full max-w-sm items-start gap-2.5 rounded-[var(--radius-card)] border-2 border-(--color-ink) bg-(--color-paper) p-4 shadow-offset-lg border-l-4 ${
+              t.kind === "success" ? "border-l-(--color-green)" : t.kind === "error" ? "border-l-(--color-red)" : "border-l-(--color-gold)"
+            }`}
           >
             {t.kind === "success" ? (
-              <IconCheckCircle className="mt-0.5 size-4 shrink-0 text-(--st-approved-fg)" />
+              <IconCheckCircle className="mt-0.5 size-4 shrink-0 text-(--color-green-deep)" />
             ) : t.kind === "error" ? (
-              <IconXCircle className="mt-0.5 size-4 shrink-0 text-(--st-rejected-fg)" />
+              <IconXCircle className="mt-0.5 size-4 shrink-0 text-(--color-red-deep)" />
             ) : null}
-            <span className="flex-1">{t.message}</span>
+            <span className="flex-1 text-sm font-bold text-(--color-ink)">{t.message}</span>
             <button
               type="button"
               onClick={() => dismiss(t.id)}
               aria-label="Dismiss"
-              className="text-(--text-faint) hover:text-(--text)"
+              className="text-(--color-ink)/50 hover:text-(--color-ink)"
             >
               <IconClose className="size-3.5" />
             </button>

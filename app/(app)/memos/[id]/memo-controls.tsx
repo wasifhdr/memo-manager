@@ -55,7 +55,7 @@ export function CancelControl({ memoId }: { memoId: string }) {
       <Modal open={open} onClose={() => setOpen(false)} title="Cancel this memo">
         <form action={formAction} className="flex flex-col gap-3">
           <input type="hidden" name="memoId" value={memoId} />
-          <p className="text-[0.8125rem] text-(--text-muted)">
+          <p className="text-[0.8125rem] text-(--color-ink)/70">
             The workflow ends immediately. This cannot be undone.
           </p>
           <Textarea name="reason" rows={3} placeholder="Reason (optional)" />

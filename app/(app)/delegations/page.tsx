@@ -39,7 +39,7 @@ export default async function DelegationsPage() {
           {outgoing.length === 0 ? (
             <EmptyState title="You haven't delegated to anyone" />
           ) : (
-            <ul className="flex flex-col divide-y divide-(--border)">
+            <ul className="flex flex-col divide-y divide-(--color-sand)">
               {outgoing.map((d) => <OutgoingRow key={d.id} d={d} />)}
             </ul>
           )}
@@ -52,7 +52,7 @@ export default async function DelegationsPage() {
           {incoming.length === 0 ? (
             <EmptyState title="No one has delegated to you" />
           ) : (
-            <ul className="flex flex-col divide-y divide-(--border)">
+            <ul className="flex flex-col divide-y divide-(--color-sand)">
               {incoming.map((d) => <IncomingRow key={d.id} d={d} />)}
             </ul>
           )}

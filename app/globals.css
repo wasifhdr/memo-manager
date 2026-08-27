@@ -1,202 +1,148 @@
 @import "tailwindcss";
 
 /* ============================================================
-   Memo Manager — design tokens
-   Document-grade administrative interface. See PRODUCT.md and
-   docs/superpowers/specs/2026-08-27-memo-management-design.md §9.
+   Memo Manager — Warm Editorial design system.
+   Applied verbatim from the user's frozen contract, D:/DESIGN.md
+   (provenance: the "API Builder" app's approved system). This is
+   a single deliberate visual world — warm printed-paper editorial
+   — and stays single-theme by the contract's own design; it does
+   not define a dark mode.
    ============================================================ */
 
 :root {
-  /* -- Type -- */
-  --font-serif: "Source Serif 4", ui-serif, Georgia, "Times New Roman", serif;
-  --font-sans: "IBM Plex Sans", ui-sans-serif, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  /* Fonts: --font-display/--font-sans/--font-mono are injected on <html> by
+     next/font (app/layout.tsx) with their own fallback stacks already baked
+     in — no need to redeclare them here. */
 
-  /* -- Surfaces & ink (light) -- */
-  --bg: #f4f5f7;
-  --surface: #ffffff;
-  --surface-raised: #ffffff;
-  --surface-sunken: #eceef1;
-  --border: #d8dbe1;
-  --border-strong: #b6bac3;
-  --text: #171a20;
-  --text-muted: #565d6b;
-  --text-faint: #868d99;
-  --text-on-accent: #ffffff;
+  /* -- Palette -- */
+  --color-paper: #fffdf8;
+  --color-cream: #faf3e7;
+  --color-ink: #3d3229;
+  --color-sand: #cfcabe;
+  --color-orange: #c2703d;
+  --color-orange-deep: #8a4a22;
+  --color-gold: #e9b44c;
+  --color-gold-deep: #8a6420;
+  --color-green: #6b8f71;
+  --color-green-deep: #43614a;
+  --color-blue: #5b7b9a;
+  --color-blue-deep: #3d5a75;
+  --color-purple: #8a7ba8;
+  --color-purple-deep: #5f527e;
+  --color-red: #a8443a;
+  --color-red-deep: #7c2f27;
+  --color-green-soft: #a3c4aa;
+  --color-red-soft: #e0a49b;
+  --color-blue-soft: #a9c4dd;
 
-  /* -- Accent: "stamp-ink" blue — interactive elements only -- */
-  --accent: #2454d6;
-  --accent-hover: #1c40ac;
-  --accent-active: #16337f;
-  --accent-tint: #e8edfc;
-  --accent-ring: rgb(36 84 214 / 0.45);
+  /* -- Radii -- */
+  --radius-dot: 6px;
+  --radius-control: 12px;
+  --radius-card: 16px;
+  --radius-card-lg: 20px;
+  --radius-pill: 999px;
 
-  /* -- Status: memo lifecycle. Pill badges, icon + word. -- */
-  --st-draft-bg: #e7e9ed;
-  --st-draft-fg: #4a5160;
-  --st-pending-bg: #e3ecf5;
-  --st-pending-fg: #38597a;
-  --st-changes-bg: #fbeed2;
-  --st-changes-fg: #8a5b09;
-  --st-rejected-bg: #fbe4e2;
-  --st-rejected-fg: #a3271e;
-  --st-approved-bg: #e1f2e7;
-  --st-approved-fg: #1e7a4d;
-  --st-cancelled-bg: #ececee;
-  --st-cancelled-fg: #75798a;
-
-  /* -- Priority: urgency. Disjoint violet/magenta family — never green/red/amber. -- */
-  --pr-normal-fg: #868d99;
-  --pr-high-bg: #efe6f9;
-  --pr-high-fg: #6a3aa0;
-  --pr-urgent-bg: #f7e3ef;
-  --pr-urgent-fg: #8f2465;
-
-  /* -- Elevation -- */
-  --shadow-sm: 0 1px 2px rgb(23 26 32 / 0.06), 0 1px 1px rgb(23 26 32 / 0.04);
-  --shadow-md: 0 4px 10px rgb(23 26 32 / 0.08), 0 2px 4px rgb(23 26 32 / 0.05);
-  --shadow-lg: 0 16px 32px rgb(23 26 32 / 0.14), 0 4px 10px rgb(23 26 32 / 0.06);
-
-  --radius-sm: 0.3125rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.875rem;
-
-  --focus-ring: 0 0 0 3px var(--accent-ring);
+  /* -- Hard-offset shadows — never blurred, always ink -- */
+  --shadow-offset-sm: 2px 2px 0 0 #3d3229;
+  --shadow-offset: 3px 3px 0 0 #3d3229;
+  --shadow-offset-lg: 6px 6px 0 0 #3d3229;
 
   color-scheme: light;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #14161b;
-    --surface: #1b1e25;
-    --surface-raised: #21252d;
-    --surface-sunken: #101216;
-    --border: #30343e;
-    --border-strong: #454a56;
-    --text: #eceef2;
-    --text-muted: #a7adba;
-    --text-faint: #767c8a;
-    --text-on-accent: #ffffff;
-
-    --accent: #6f93ec;
-    --accent-hover: #8ba7f0;
-    --accent-active: #a9bef4;
-    --accent-tint: #232c47;
-    --accent-ring: rgb(111 147 236 / 0.5);
-
-    --st-draft-bg: #2a2d34;
-    --st-draft-fg: #b7bcc6;
-    --st-pending-bg: #1f2c3c;
-    --st-pending-fg: #8fb3da;
-    --st-changes-bg: #3a2f14;
-    --st-changes-fg: #e8b653;
-    --st-rejected-bg: #3a1e1c;
-    --st-rejected-fg: #f0897e;
-    --st-approved-bg: #17301f;
-    --st-approved-fg: #6fcb95;
-    --st-cancelled-bg: #26282d;
-    --st-cancelled-fg: #93979f;
-
-    --pr-normal-fg: #868d99;
-    --pr-high-bg: #2c2340;
-    --pr-high-fg: #c3a4ee;
-    --pr-urgent-bg: #3a2032;
-    --pr-urgent-fg: #ec8fc4;
-
-    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.35), 0 1px 1px rgb(0 0 0 / 0.2);
-    --shadow-md: 0 4px 10px rgb(0 0 0 / 0.4), 0 2px 4px rgb(0 0 0 / 0.25);
-    --shadow-lg: 0 20px 40px rgb(0 0 0 / 0.5), 0 4px 12px rgb(0 0 0 / 0.3);
-
-    color-scheme: dark;
-  }
-}
-
-:root[data-theme="dark"] {
-  --bg: #14161b;
-  --surface: #1b1e25;
-  --surface-raised: #21252d;
-  --surface-sunken: #101216;
-  --border: #30343e;
-  --border-strong: #454a56;
-  --text: #eceef2;
-  --text-muted: #a7adba;
-  --text-faint: #767c8a;
-  --text-on-accent: #ffffff;
-
-  --accent: #6f93ec;
-  --accent-hover: #8ba7f0;
-  --accent-active: #a9bef4;
-  --accent-tint: #232c47;
-  --accent-ring: rgb(111 147 236 / 0.5);
-
-  --st-draft-bg: #2a2d34;
-  --st-draft-fg: #b7bcc6;
-  --st-pending-bg: #1f2c3c;
-  --st-pending-fg: #8fb3da;
-  --st-changes-bg: #3a2f14;
-  --st-changes-fg: #e8b653;
-  --st-rejected-bg: #3a1e1c;
-  --st-rejected-fg: #f0897e;
-  --st-approved-bg: #17301f;
-  --st-approved-fg: #6fcb95;
-  --st-cancelled-bg: #26282d;
-  --st-cancelled-fg: #93979f;
-
-  --pr-normal-fg: #868d99;
-  --pr-high-bg: #2c2340;
-  --pr-high-fg: #c3a4ee;
-  --pr-urgent-bg: #3a2032;
-  --pr-urgent-fg: #ec8fc4;
-
-  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.35), 0 1px 1px rgb(0 0 0 / 0.2);
-  --shadow-md: 0 4px 10px rgb(0 0 0 / 0.4), 0 2px 4px rgb(0 0 0 / 0.25);
-  --shadow-lg: 0 20px 40px rgb(0 0 0 / 0.5), 0 4px 12px rgb(0 0 0 / 0.3);
-
-  color-scheme: dark;
-}
-
 @theme inline {
-  --color-bg: var(--bg);
-  --color-surface: var(--surface);
-  --color-surface-raised: var(--surface-raised);
-  --color-surface-sunken: var(--surface-sunken);
-  --color-border: var(--border);
-  --color-border-strong: var(--border-strong);
-  --color-text: var(--text);
-  --color-text-muted: var(--text-muted);
-  --color-text-faint: var(--text-faint);
-  --color-accent: var(--accent);
-  --color-accent-hover: var(--accent-hover);
-  --color-accent-tint: var(--accent-tint);
-  --color-text-on-accent: var(--text-on-accent);
+  --color-paper: var(--color-paper);
+  --color-cream: var(--color-cream);
+  --color-ink: var(--color-ink);
+  --color-sand: var(--color-sand);
+  --color-orange: var(--color-orange);
+  --color-orange-deep: var(--color-orange-deep);
+  --color-gold: var(--color-gold);
+  --color-gold-deep: var(--color-gold-deep);
+  --color-green: var(--color-green);
+  --color-green-deep: var(--color-green-deep);
+  --color-blue: var(--color-blue);
+  --color-blue-deep: var(--color-blue-deep);
+  --color-purple: var(--color-purple);
+  --color-purple-deep: var(--color-purple-deep);
+  --color-red: var(--color-red);
+  --color-red-deep: var(--color-red-deep);
+  --color-green-soft: var(--color-green-soft);
+  --color-red-soft: var(--color-red-soft);
+  --color-blue-soft: var(--color-blue-soft);
 
-  --font-family-serif: var(--font-serif);
+  --font-family-display: var(--font-display);
   --font-family-sans: var(--font-sans);
   --font-family-mono: var(--font-mono);
 
-  --radius-sm: var(--radius-sm);
-  --radius-md: var(--radius-md);
-  --radius-lg: var(--radius-lg);
+  --radius-dot: var(--radius-dot);
+  --radius-control: var(--radius-control);
+  --radius-card: var(--radius-card);
+  --radius-card-lg: var(--radius-card-lg);
+  --radius-pill: var(--radius-pill);
+
+  /* Display type */
+  --text-display: 3.5rem;
+  --text-display--line-height: 1.02;
+  --text-display--letter-spacing: -0.015em;
+  --text-display--font-weight: 800;
+  --text-display-sm: 2.25rem;
+  --text-display-sm--line-height: 1.08;
+  --text-display-sm--letter-spacing: -0.01em;
+  --text-display-sm--font-weight: 800;
+
+  /* Headings */
+  --text-h1: 1.75rem;
+  --text-h1--line-height: 1.15;
+  --text-h1--font-weight: 700;
+  --text-h2: 1.3125rem;
+  --text-h2--line-height: 1.25;
+  --text-h2--font-weight: 700;
+  --text-h3: 1.0625rem;
+  --text-h3--line-height: 1.3;
+  --text-h3--font-weight: 700;
+
+  /* Caps label */
+  --text-label: 0.72rem;
+  --text-label--line-height: 1.2;
+  --text-label--letter-spacing: 0.08em;
+  --text-label--font-weight: 800;
+}
+
+/* Dot-grid paper texture — hero / marketing bands only, never data screens */
+@utility bg-dotgrid {
+  background-image: radial-gradient(
+    color-mix(in srgb, var(--color-ink) 10%, transparent) 1px,
+    transparent 1px
+  );
+  background-size: 22px 22px;
+}
+
+/* Hard-offset shadow utilities (arbitrary box-shadow values collide with
+   Tailwind's shadow-* scale, so these are named utilities instead). */
+@utility shadow-offset-sm {
+  box-shadow: var(--shadow-offset-sm);
+}
+@utility shadow-offset {
+  box-shadow: var(--shadow-offset);
+}
+@utility shadow-offset-lg {
+  box-shadow: var(--shadow-offset-lg);
 }
 
 * {
-  border-color: var(--border);
+  border-color: var(--color-sand);
 }
 
 html {
-  background: var(--bg);
+  background: var(--color-cream);
 }
 
 body {
-  background: var(--bg);
-  color: var(--text);
+  background: var(--color-cream);
+  color: var(--color-ink);
   font-family: var(--font-sans);
-}
-
-h1, h2, h3, .font-serif-heading {
-  font-family: var(--font-serif);
-  letter-spacing: -0.01em;
+  font-size: 15px;
 }
 
 .font-mono-nums {
@@ -207,13 +153,13 @@ h1, h2, h3, .font-serif-heading {
 /* -- The memo body itself: the one place body copy speaks in the document's
    own voice, not the surrounding sans-serif chrome. -- */
 .prose-memo {
-  font-family: var(--font-serif);
+  font-family: var(--font-display);
   line-height: 1.7;
 }
 .prose-memo p { margin: 0 0 0.85em; }
 .prose-memo p:last-child { margin-bottom: 0; }
-.prose-memo h2 { margin: 1.3em 0 0.5em; font-size: 1.25rem; font-weight: 600; }
-.prose-memo h3 { margin: 1.1em 0 0.4em; font-size: 1.0625rem; font-weight: 600; }
+.prose-memo h2 { margin: 1.3em 0 0.5em; font-size: 1.25rem; font-weight: 700; }
+.prose-memo h3 { margin: 1.1em 0 0.4em; font-size: 1.0625rem; font-weight: 700; }
 .prose-memo h2:first-child, .prose-memo h3:first-child { margin-top: 0; }
 .prose-memo ul, .prose-memo ol { margin: 0 0 0.85em; padding-left: 1.4em; }
 .prose-memo li { margin: 0.25em 0; }
@@ -221,33 +167,33 @@ h1, h2, h3, .font-serif-heading {
 .prose-memo blockquote {
   margin: 0 0 0.85em;
   padding: 0.1em 0 0.1em 1em;
-  border-left: 2px solid var(--border-strong);
-  color: var(--text-muted);
+  border-left: 4px solid var(--color-gold);
+  color: color-mix(in srgb, var(--color-ink) 70%, transparent);
 }
-.prose-memo a { text-decoration: underline; text-underline-offset: 2px; }
-.prose-memo hr { border: none; border-top: 1px solid var(--border); margin: 1.3em 0; }
+.prose-memo a { color: var(--color-orange-deep); text-decoration: underline; text-underline-offset: 2px; }
+.prose-memo hr { border: none; border-top: 1px solid var(--color-sand); margin: 1.3em 0; }
 .prose-memo code {
   font-family: var(--font-mono);
   font-size: 0.875em;
-  background: var(--surface-sunken);
+  background: var(--color-cream);
+  border: 1px solid var(--color-sand);
   padding: 0.1em 0.35em;
-  border-radius: 0.25em;
+  border-radius: var(--radius-dot);
 }
 
 /* -- Browser surfaces: theme what the browser draws by default -- */
 ::selection {
-  background: var(--accent-tint);
-  color: var(--text);
+  background: color-mix(in srgb, var(--color-orange) 25%, transparent);
+  color: var(--color-ink);
 }
 
 :focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-  border-radius: var(--radius-sm);
+  outline: 3px solid var(--color-ink);
+  outline-offset: 2px;
 }
 
 * {
-  scrollbar-color: var(--border-strong) transparent;
+  scrollbar-color: var(--color-sand) transparent;
   scrollbar-width: thin;
 }
 ::-webkit-scrollbar {
@@ -258,11 +204,11 @@ h1, h2, h3, .font-serif-heading {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background-color: var(--border-strong);
+  background-color: var(--color-sand);
   border-radius: 999px;
-  border: 2px solid var(--bg);
+  border: 2px solid var(--color-cream);
 }
 
 a {
-  color: var(--accent);
+  color: var(--color-orange-deep);
 }

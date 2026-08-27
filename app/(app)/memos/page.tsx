@@ -14,7 +14,7 @@ export const metadata: Metadata = { title: 'My Memos' }
 type Row = Awaited<ReturnType<typeof listMyMemos>>['rows'][number]
 
 const columns: Column<Row>[] = [
-  { key: 'number', header: 'Memo #', render: (r) => <span className="font-mono-nums text-(--text-muted)">{r.memoNumber}</span> },
+  { key: 'number', header: 'Memo #', render: (r) => <span className="font-mono-nums text-(--color-ink)/70">{r.memoNumber}</span> },
   { key: 'subject', header: 'Subject', render: (r) => <span className="font-medium">{r.subject}</span> },
   { key: 'status', header: 'Status', render: (r) => <StatusBadge status={r.status} /> },
   { key: 'participant', header: 'Current participant', render: (r) => r.currentParticipantName ?? '—' },

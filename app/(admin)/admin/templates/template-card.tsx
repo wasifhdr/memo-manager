@@ -25,8 +25,8 @@ export function TemplateCard({ template }: { template: Template }) {
     <Card>
       <CardHeader>
         <div>
-          <h3 className="text-sm font-semibold text-(--text)">{template.name}</h3>
-          {template.description ? <p className="mt-0.5 text-[0.75rem] text-(--text-muted)">{template.description}</p> : null}
+          <h3 className="text-sm font-semibold text-(--color-ink)">{template.name}</h3>
+          {template.description ? <p className="mt-0.5 text-[0.75rem] text-(--color-ink)/70">{template.description}</p> : null}
         </div>
         <div className="flex shrink-0 items-center gap-2">
           {template.active ? <Badge>Active</Badge> : <Badge className="opacity-70">Inactive</Badge>}
@@ -46,13 +46,13 @@ export function TemplateCard({ template }: { template: Template }) {
         {editing ? (
           <TemplateForm mode="edit" template={template} onDone={() => setEditing(false)} />
         ) : (
-          <ol className="flex flex-wrap items-center gap-2 text-[0.8125rem] text-(--text-muted)">
+          <ol className="flex flex-wrap items-center gap-2 text-[0.8125rem] text-(--color-ink)/70">
             {template.steps.map((s, i) => (
               <li key={i} className="flex items-center gap-2">
-                <span className="rounded-[var(--radius-sm)] border border-(--border) bg-(--surface-sunken) px-2 py-1">
-                  {s.positionTitle} <span className="text-(--text-faint)">({s.requiredAction})</span>
+                <span className="rounded-[var(--radius-control)] border border-(--color-sand) bg-(--color-cream) px-2 py-1">
+                  {s.positionTitle} <span className="text-(--color-ink)/50">({s.requiredAction})</span>
                 </span>
-                {i < template.steps.length - 1 ? <span className="text-(--text-faint)">→</span> : null}
+                {i < template.steps.length - 1 ? <span className="text-(--color-ink)/50">→</span> : null}
               </li>
             ))}
           </ol>

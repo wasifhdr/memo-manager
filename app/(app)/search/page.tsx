@@ -21,7 +21,7 @@ type SearchParamsIn = {
 type Row = Awaited<ReturnType<typeof searchMemos>>['rows'][number]
 
 const columns: Column<Row>[] = [
-  { key: 'number', header: 'Memo #', render: (r) => <span className="font-mono-nums text-(--text-muted)">{r.memoNumber}</span> },
+  { key: 'number', header: 'Memo #', render: (r) => <span className="font-mono-nums text-(--color-ink)/70">{r.memoNumber}</span> },
   { key: 'subject', header: 'Subject', render: (r) => <span className="font-medium">{r.subject}</span> },
   { key: 'author', header: 'Author', render: (r) => r.authorName },
   { key: 'department', header: 'Department', render: (r) => r.departmentName ?? '—' },
@@ -72,7 +72,7 @@ export default async function SearchPage({
     <div>
       <PageHeader title="Search" description="Search within your organization's memos." />
 
-      <form method="get" className="mb-6 grid gap-4 rounded-[var(--radius-lg)] border border-(--border) bg-(--surface) p-4 sm:grid-cols-2 lg:grid-cols-4">
+      <form method="get" className="mb-6 grid gap-4 rounded-[var(--radius-card)] border border-(--color-sand) bg-(--color-paper) p-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="sm:col-span-2 lg:col-span-4">
           <Label htmlFor="text">Keyword</Label>
           <Input id="text" name="text" defaultValue={sp.text} placeholder="Search subject and body…" />
@@ -114,7 +114,7 @@ export default async function SearchPage({
         </div>
         <div className="flex items-end gap-2 sm:col-span-2 lg:col-span-4">
           <Button type="submit">Search</Button>
-          {hasQuery ? <a href="/search" className="text-[0.8125rem] text-(--text-faint) hover:text-(--text-muted)">Clear</a> : null}
+          {hasQuery ? <a href="/search" className="text-[0.8125rem] text-(--color-ink)/50 hover:text-(--color-ink)/70">Clear</a> : null}
         </div>
       </form>
 
@@ -128,7 +128,7 @@ export default async function SearchPage({
           emptyDescription="Try a different keyword or fewer filters."
         />
       ) : (
-        <p className="text-[0.8125rem] text-(--text-faint)">Enter a keyword or choose a filter to search.</p>
+        <p className="text-[0.8125rem] text-(--color-ink)/50">Enter a keyword or choose a filter to search.</p>
       )}
     </div>
   )

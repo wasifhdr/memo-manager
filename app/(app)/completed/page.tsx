@@ -17,7 +17,7 @@ const COMPLETED_STATUS_OPTIONS = STATUS_OPTIONS.filter((o) =>
 type Row = Awaited<ReturnType<typeof listCompleted>>['rows'][number]
 
 const columns: Column<Row>[] = [
-  { key: 'number', header: 'Memo #', render: (r) => <span className="font-mono-nums text-(--text-muted)">{r.memoNumber}</span> },
+  { key: 'number', header: 'Memo #', render: (r) => <span className="font-mono-nums text-(--color-ink)/70">{r.memoNumber}</span> },
   { key: 'subject', header: 'Subject', render: (r) => <span className="font-medium">{r.subject}</span> },
   { key: 'author', header: 'Author', render: (r) => r.authorName },
   { key: 'department', header: 'Department', render: (r) => r.departmentName ?? '—' },

@@ -18,7 +18,7 @@ export function NewDepartmentForm() {
       className="mb-5 flex flex-wrap items-end gap-2"
     >
       <div>
-        <label className="mb-1.5 block text-[0.8125rem] font-medium text-(--text)" htmlFor="new-dept-name">
+        <label className="mb-1.5 block text-[0.8125rem] font-medium text-(--color-ink)" htmlFor="new-dept-name">
           New department
         </label>
         <Input id="new-dept-name" name="name" placeholder="Department name" required className="w-56" />

@@ -45,7 +45,7 @@ Built to satisfy a university course specification (CSE226.1 Project 3, an Inter
 
 ## Brand Commitments
 
-No existing brand, name, or visual identity to preserve — this is a new build with no incumbent design system beyond the framework scaffold's defaults. "Memo Manager" is the working project name; no logo or wordmark exists yet.
+The visual identity is **Warm Editorial**, a frozen, reusable design contract the project owner brought in from a prior project ("API Builder") and applied here verbatim — see `DESIGN.md` for the implemented system and `D:/DESIGN.md` for the governing source contract. Palette, type scale, radii, shadow system, and interaction physics are frozen; they are not this project's to reinvent. "Memo Manager" is the working project name; the wordmark is set in the system's serif (Source Serif 4), no separate logo mark exists.
 
 ## Evidence on Hand
 

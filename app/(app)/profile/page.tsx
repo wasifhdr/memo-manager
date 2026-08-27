@@ -31,8 +31,8 @@ export default async function ProfilePage() {
       <div className="mb-6 grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3">
         {fields.map((f) => (
           <div key={f.label}>
-            <dt className="text-[0.6875rem] font-semibold uppercase tracking-wide text-(--text-faint)">{f.label}</dt>
-            <dd className="mt-0.5 text-sm text-(--text)">{f.value}</dd>
+            <dt className="text-[0.6875rem] font-semibold uppercase tracking-wide text-(--color-ink)/50">{f.label}</dt>
+            <dd className="mt-0.5 text-sm text-(--color-ink)">{f.value}</dd>
           </div>
         ))}
       </div>

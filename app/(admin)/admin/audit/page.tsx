@@ -13,7 +13,7 @@ export const metadata: Metadata = { title: 'Audit Log' }
 type Row = Awaited<ReturnType<typeof listAudit>>['rows'][number]
 
 const columns: Column<Row>[] = [
-  { key: 'when', header: 'When', render: (r) => <span className="font-mono-nums text-(--text-muted)">{formatDateTime(r.createdAt)}</span> },
+  { key: 'when', header: 'When', render: (r) => <span className="font-mono-nums text-(--color-ink)/70">{formatDateTime(r.createdAt)}</span> },
   { key: 'actor', header: 'Actor', render: (r) => r.actorName ?? 'System' },
   { key: 'event', header: 'Event', render: (r) => <span className="font-mono-nums text-[0.75rem]">{r.eventType}</span> },
   { key: 'description', header: 'Description', render: (r) => r.description },
@@ -63,7 +63,7 @@ export default async function AuditLogPage({
           <Input id="to" name="to" type="date" defaultValue={sp.to} />
         </div>
         <Button type="submit" variant="secondary" size="sm">Filter</Button>
-        {hasFilter ? <a href="/admin/audit" className="text-[0.8125rem] text-(--text-faint) hover:text-(--text-muted)">Clear</a> : null}
+        {hasFilter ? <a href="/admin/audit" className="text-[0.8125rem] text-(--color-ink)/50 hover:text-(--color-ink)/70">Clear</a> : null}
       </form>
 
       <DataTable

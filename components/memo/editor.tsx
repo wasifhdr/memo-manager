@@ -19,8 +19,8 @@ function ToolbarButton({
       aria-label={label}
       aria-pressed={active}
       title={label}
-      className={`flex h-8 min-w-8 items-center justify-center rounded-[var(--radius-sm)] px-2 text-[0.8125rem] font-medium transition-colors ${
-        active ? 'bg-(--accent-tint) text-(--accent)' : 'text-(--text-muted) hover:bg-(--surface-sunken) hover:text-(--text)'
+      className={`flex h-8 min-w-8 items-center justify-center rounded-[var(--radius-dot)] px-2 text-[0.8125rem] font-bold transition-colors ${
+        active ? 'bg-(--color-orange)/10 text-(--color-orange-deep)' : 'text-(--color-ink)/60 hover:bg-(--color-paper) hover:text-(--color-ink)'
       }`}
     >
       {children}
@@ -30,7 +30,7 @@ function ToolbarButton({
 
 function Toolbar({ editor }: { editor: Editor }) {
   return (
-    <div className="flex flex-wrap items-center gap-1 border-b border-(--border) bg-(--surface-sunken) px-2 py-1.5">
+    <div className="flex flex-wrap items-center gap-1 border-b border-(--color-sand) bg-(--color-cream) px-2 py-1.5">
       <ToolbarButton label="Bold" active={editor.isActive('bold')} onClick={() => editor.chain().focus().toggleBold().run()}>
         <span className="font-bold">B</span>
       </ToolbarButton>
@@ -40,14 +40,14 @@ function Toolbar({ editor }: { editor: Editor }) {
       <ToolbarButton label="Underline" active={editor.isActive('underline')} onClick={() => editor.chain().focus().toggleUnderline().run()}>
         <span className="underline">U</span>
       </ToolbarButton>
-      <span className="mx-1 h-5 w-px bg-(--border)" />
+      <span className="mx-1 h-5 w-px bg-(--color-sand)" />
       <ToolbarButton label="Heading" active={editor.isActive('heading', { level: 2 })} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}>
         H2
       </ToolbarButton>
       <ToolbarButton label="Subheading" active={editor.isActive('heading', { level: 3 })} onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}>
         H3
       </ToolbarButton>
-      <span className="mx-1 h-5 w-px bg-(--border)" />
+      <span className="mx-1 h-5 w-px bg-(--color-sand)" />
       <ToolbarButton label="Bulleted list" active={editor.isActive('bulletList')} onClick={() => editor.chain().focus().toggleBulletList().run()}>
         •—
       </ToolbarButton>
@@ -57,7 +57,7 @@ function Toolbar({ editor }: { editor: Editor }) {
       <ToolbarButton label="Quote" active={editor.isActive('blockquote')} onClick={() => editor.chain().focus().toggleBlockquote().run()}>
         &ldquo;
       </ToolbarButton>
-      <span className="mx-1 h-5 w-px bg-(--border)" />
+      <span className="mx-1 h-5 w-px bg-(--color-sand)" />
       <ToolbarButton
         label="Link"
         active={editor.isActive('link')}
@@ -93,7 +93,7 @@ export function MemoEditor({
     content: initialHtml,
     editorProps: {
       attributes: {
-        class: 'prose-memo min-h-48 max-w-none px-3.5 py-3 text-sm text-(--text) focus:outline-none',
+        class: 'prose-memo min-h-48 max-w-none px-3.5 py-3 text-sm text-(--color-ink) focus:outline-none',
         'aria-label': placeholder,
       },
     },
@@ -111,7 +111,7 @@ export function MemoEditor({
   }, [initialHtml])
 
   return (
-    <div className="overflow-hidden rounded-[var(--radius-md)] border border-(--border-strong) bg-(--surface)">
+    <div className="overflow-hidden rounded-[var(--radius-control)] border-2 border-(--color-ink) bg-(--color-paper)">
       <input type="hidden" name={name} value={html} />
       {editor ? <Toolbar editor={editor} /> : null}
       <EditorContent editor={editor} />

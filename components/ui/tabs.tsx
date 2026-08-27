@@ -11,7 +11,7 @@ export function Tabs({ tabs, defaultTab }: { tabs: Tab[]; defaultTab?: string })
 
   return (
     <div>
-      <div role="tablist" className="flex gap-1 border-b border-(--border)">
+      <div role="tablist" className="flex flex-wrap gap-1">
         {tabs.map((tab) => {
           const selected = tab.key === activeTab?.key;
           return (
@@ -21,22 +21,19 @@ export function Tabs({ tabs, defaultTab }: { tabs: Tab[]; defaultTab?: string })
               id={`${id}-${tab.key}`}
               aria-selected={selected}
               onClick={() => setActive(tab.key)}
-              className={`relative flex items-center gap-1.5 px-3.5 py-2.5 text-[0.8125rem] font-medium transition-colors ${
-                selected ? "text-(--accent)" : "text-(--text-muted) hover:text-(--text)"
+              className={`flex items-center gap-1.5 rounded-[var(--radius-pill)] px-3 py-1.5 text-sm font-bold transition-colors duration-100 ${
+                selected ? "bg-(--color-ink) text-(--color-paper)" : "text-(--color-ink)/70 hover:bg-(--color-cream)"
               }`}
             >
               {tab.label}
               {typeof tab.count === "number" ? (
                 <span
-                  className={`rounded-full px-1.5 py-0.5 text-[0.6875rem] font-semibold ${
-                    selected ? "bg-(--accent-tint) text-(--accent)" : "bg-(--surface-sunken) text-(--text-faint)"
+                  className={`rounded-[var(--radius-pill)] px-1.5 py-0.5 text-[0.6875rem] font-bold ${
+                    selected ? "bg-(--color-paper)/20 text-(--color-paper)" : "bg-(--color-sand) text-(--color-ink)/70"
                   }`}
                 >
                   {tab.count}
                 </span>
-              ) : null}
-              {selected ? (
-                <span className="absolute inset-x-0 -bottom-px h-0.5 rounded-full bg-(--accent)" />
               ) : null}
             </button>
           );

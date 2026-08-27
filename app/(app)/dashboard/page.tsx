@@ -32,7 +32,7 @@ export default async function DashboardPage() {
         <Card>
           <CardHeader className="justify-between">
             <h2 className="text-sm font-semibold">Awaiting your action</h2>
-            <a href="/inbox" className="text-[0.75rem] text-(--accent) hover:underline">View inbox</a>
+            <a href="/inbox" className="text-[0.75rem] text-(--color-orange-deep) hover:underline">View inbox</a>
           </CardHeader>
           <CardBody>
             <MiniMemoList
@@ -48,7 +48,7 @@ export default async function DashboardPage() {
         <Card>
           <CardHeader className="justify-between">
             <h2 className="text-sm font-semibold">Submitted by you</h2>
-            <a href="/memos" className="text-[0.75rem] text-(--accent) hover:underline">View my memos</a>
+            <a href="/memos" className="text-[0.75rem] text-(--color-orange-deep) hover:underline">View my memos</a>
           </CardHeader>
           <CardBody>
             <MiniMemoList
@@ -64,7 +64,7 @@ export default async function DashboardPage() {
         <Card>
           <CardHeader className="justify-between">
             <h2 className="text-sm font-semibold">Recently completed</h2>
-            <a href="/completed" className="text-[0.75rem] text-(--accent) hover:underline">View all</a>
+            <a href="/completed" className="text-[0.75rem] text-(--color-orange-deep) hover:underline">View all</a>
           </CardHeader>
           <CardBody>
             <MiniMemoList
@@ -95,12 +95,12 @@ export default async function DashboardPage() {
             <dl className="flex flex-col gap-2 text-[0.8125rem]">
               {Object.entries(d.countsByStatus).filter(([, n]) => n > 0).map(([status, n]) => (
                 <div key={status} className="flex items-center justify-between">
-                  <dt className="capitalize text-(--text-muted)">{status.replace(/_/g, ' ')}</dt>
-                  <dd className="font-mono-nums font-medium text-(--text)">{n}</dd>
+                  <dt className="capitalize text-(--color-ink)/70">{status.replace(/_/g, ' ')}</dt>
+                  <dd className="font-mono-nums font-medium text-(--color-ink)">{n}</dd>
                 </div>
               ))}
               {Object.values(d.countsByStatus).every((n) => n === 0) ? (
-                <p className="text-(--text-faint)">No memos yet.</p>
+                <p className="text-(--color-ink)/50">No memos yet.</p>
               ) : null}
             </dl>
           </CardBody>

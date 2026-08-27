@@ -32,7 +32,7 @@ export function AttachmentList({
   return (
     <div>
       {attachments.length === 0 ? (
-        <p className="text-[0.8125rem] text-(--text-faint)">No attachments yet.</p>
+        <p className="text-[0.8125rem] text-(--color-ink)/50">No attachments yet.</p>
       ) : (
         <ul className="flex flex-col gap-1.5">
           {attachments.map((a) => (
@@ -57,16 +57,16 @@ function AttachmentRow({
   const [, deleteAction, pending] = useActionState<ActionState, FormData>(deleteAttachmentAction, undefined)
 
   return (
-    <li className="flex items-center gap-2 rounded-[var(--radius-sm)] border border-(--border) bg-(--surface) px-3 py-2 text-[0.8125rem]">
-      <IconPaperclip className="size-3.5 shrink-0 text-(--text-faint)" />
+    <li className="flex items-center gap-2 rounded-[var(--radius-control)] border border-(--color-sand) bg-(--color-paper) px-3 py-2 text-[0.8125rem]">
+      <IconPaperclip className="size-3.5 shrink-0 text-(--color-ink)/50" />
       <a
         href={`/api/attachments/${attachment.id}`}
-        className="min-w-0 flex-1 truncate font-medium text-(--text) hover:text-(--accent)"
+        className="min-w-0 flex-1 truncate font-medium text-(--color-ink) hover:text-(--color-orange-deep)"
       >
         {attachment.filename}
       </a>
-      <span className="shrink-0 font-mono-nums text-(--text-faint)">{formatBytes(attachment.sizeBytes)}</span>
-      <span className="hidden shrink-0 text-(--text-faint) sm:inline">{attachment.uploadedByName}</span>
+      <span className="shrink-0 font-mono-nums text-(--color-ink)/50">{formatBytes(attachment.sizeBytes)}</span>
+      <span className="hidden shrink-0 text-(--color-ink)/50 sm:inline">{attachment.uploadedByName}</span>
       {canManage ? (
         <form action={deleteAction}>
           <input type="hidden" name="memoId" value={memoId} />
@@ -75,7 +75,7 @@ function AttachmentRow({
             type="submit"
             disabled={pending}
             aria-label={`Remove ${attachment.filename}`}
-            className="flex size-6 shrink-0 items-center justify-center rounded-[var(--radius-sm)] text-(--text-faint) hover:bg-(--surface-sunken) hover:text-(--st-rejected-fg)"
+            className="flex size-6 shrink-0 items-center justify-center rounded-[var(--radius-dot)] text-(--color-ink)/50 hover:bg-(--color-cream) hover:text-(--color-red-deep)"
           >
             <IconClose className="size-3.5" />
           </button>
@@ -98,14 +98,14 @@ function UploadAttachmentForm({ memoId }: { memoId: string }) {
       <input type="hidden" name="memoId" value={memoId} />
       <input
         type="file" name="file" required
-        className="flex-1 text-[0.8125rem] text-(--text-muted) file:mr-3 file:rounded-[var(--radius-sm)] file:border-0 file:bg-(--surface-sunken) file:px-3 file:py-1.5 file:text-[0.8125rem] file:font-medium file:text-(--text)"
+        className="flex-1 text-[0.8125rem] text-(--color-ink)/70 file:mr-3 file:rounded-[var(--radius-dot)] file:border-0 file:bg-(--color-cream) file:px-3 file:py-1.5 file:text-[0.8125rem] file:font-bold file:text-(--color-ink)"
       />
       <Button type="submit" size="sm" variant="secondary" disabled={pending}>
         {pending ? 'Uploading…' : 'Attach'}
       </Button>
       <div className="w-full">
         <FieldError>{state && 'error' in state ? state.error : undefined}</FieldError>
-        <p className="mt-1 text-[0.75rem] text-(--text-faint)">
+        <p className="mt-1 text-[0.75rem] text-(--color-ink)/50">
           Up to {(ATTACHMENT_MAX_BYTES / (1024 * 1024)).toFixed(0)} MB per file, {ATTACHMENT_MAX_PER_MEMO} files per memo.
         </p>
       </div>

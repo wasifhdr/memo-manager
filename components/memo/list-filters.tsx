@@ -16,19 +16,19 @@ export function ListFilters({
     <form action={action} method="get" className="mb-4 flex flex-wrap items-end gap-3">
       {statusOptions ? (
         <div>
-          <label className="mb-1.5 block text-[0.75rem] font-medium text-(--text-muted)" htmlFor="status">Status</label>
+          <label className="mb-1.5 block text-label uppercase text-(--color-ink)/70" htmlFor="status">Status</label>
           <Select id="status" name="status" defaultValue={current.status ?? ''} placeholder="All statuses" options={statusOptions} className="w-48" />
         </div>
       ) : null}
       {priorityOptions ? (
         <div>
-          <label className="mb-1.5 block text-[0.75rem] font-medium text-(--text-muted)" htmlFor="priority">Priority</label>
+          <label className="mb-1.5 block text-label uppercase text-(--color-ink)/70" htmlFor="priority">Priority</label>
           <Select id="priority" name="priority" defaultValue={current.priority ?? ''} placeholder="All priorities" options={priorityOptions} className="w-40" />
         </div>
       ) : null}
       <Button type="submit" variant="secondary" size="sm">Filter</Button>
       {current.status || current.priority ? (
-        <a href={action} className="text-[0.8125rem] text-(--text-faint) hover:text-(--text-muted)">Clear</a>
+        <a href={action} className="text-[0.8125rem] text-(--color-ink)/50 hover:text-(--color-ink)/70">Clear</a>
       ) : null}
     </form>
   )

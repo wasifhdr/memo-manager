@@ -11,9 +11,9 @@ export function ResetPasswordForm({ token }: { token: string }) {
   )
 
   return (
-    <form action={formAction} className="rounded-[var(--radius-lg)] border border-(--border) bg-(--surface) p-6 shadow-[var(--shadow-sm)]">
-      <h1 className="mb-1 text-xl font-semibold text-(--text) font-serif-heading">Choose a new password</h1>
-      <p className="mb-5 text-sm text-(--text-muted)">This link can only be used once.</p>
+    <form action={formAction} className="rounded-[var(--radius-card)] border border-(--color-sand) bg-(--color-paper) p-6 shadow-offset-sm">
+      <h1 className="mb-1 font-display text-2xl font-bold text-(--color-ink)">Choose a new password</h1>
+      <p className="mb-5 text-sm text-(--color-ink)/70">This link can only be used once.</p>
 
       <input type="hidden" name="token" value={token} />
 

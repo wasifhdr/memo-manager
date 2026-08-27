@@ -36,14 +36,14 @@ export default async function MemoVersionsPage({
       ) : (
         <div className="flex flex-col gap-3">
           {versions.filter((v) => v !== null).reverse().map((v) => (
-            <details key={v.versionNo} className="rounded-[var(--radius-lg)] border border-(--border) bg-(--surface)" open={v.versionNo === versions.length}>
-              <summary className="flex cursor-pointer items-center justify-between px-4 py-3 text-[0.8125rem] font-medium text-(--text)">
+            <details key={v.versionNo} className="rounded-[var(--radius-card)] border border-(--color-sand) bg-(--color-paper)" open={v.versionNo === versions.length}>
+              <summary className="flex cursor-pointer items-center justify-between px-4 py-3 text-[0.8125rem] font-medium text-(--color-ink)">
                 <span>Version {v.versionNo} — {v.subject}</span>
-                <span className="font-mono-nums text-[0.75rem] font-normal text-(--text-faint)">
+                <span className="font-mono-nums text-[0.75rem] font-normal text-(--color-ink)/50">
                   {v.editorName} · {formatDateTime(v.submittedAt ?? v.createdAt)}
                 </span>
               </summary>
-              <div className="border-t border-(--border) px-4 py-4">
+              <div className="border-t border-(--color-sand) px-4 py-4">
                 <div className="prose-memo" dangerouslySetInnerHTML={{ __html: v.bodyHtml }} />
               </div>
             </details>

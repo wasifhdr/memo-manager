@@ -36,14 +36,14 @@ export function DataTable<T>({
   }
 
   return (
-    <div className="overflow-x-auto rounded-[var(--radius-lg)] border border-(--border) bg-(--surface)">
+    <div className="overflow-x-auto rounded-[var(--radius-card)] border border-(--color-sand) bg-(--color-paper)">
       <table className="w-full min-w-[36rem] border-collapse text-sm">
         <thead>
-          <tr className="border-b border-(--border) bg-(--surface-sunken)">
+          <tr>
             {columns.map((col) => (
               <th
                 key={col.key}
-                className={`whitespace-nowrap px-4 py-2.5 text-[0.75rem] font-semibold uppercase tracking-wide text-(--text-faint) ${alignClass[col.align ?? "left"]} ${col.headerClassName ?? ""}`}
+                className={`whitespace-nowrap border-b-2 border-(--color-ink) px-3 py-2 text-label uppercase text-(--color-ink)/60 ${alignClass[col.align ?? "left"]} ${col.headerClassName ?? ""}`}
               >
                 {col.header}
               </th>
@@ -56,12 +56,12 @@ export function DataTable<T>({
             return (
               <tr
                 key={rowKey(row)}
-                className="border-b border-(--border) last:border-b-0 transition-colors hover:bg-(--surface-sunken)"
+                className="border-b border-(--color-sand) last:border-b-0 transition-colors hover:bg-(--color-cream)/60"
               >
                 {columns.map((col, i) => (
                   <td
                     key={col.key}
-                    className={`px-4 py-3 align-middle text-(--text) ${href && i === 0 ? "relative" : ""} ${alignClass[col.align ?? "left"]} ${col.className ?? ""}`}
+                    className={`px-3 py-2.5 align-middle text-(--color-ink) ${href && i === 0 ? "relative" : ""} ${alignClass[col.align ?? "left"]} ${col.className ?? ""}`}
                   >
                     {href && i === 0 ? (
                       <a href={href} className="absolute inset-0" aria-label="Open" />

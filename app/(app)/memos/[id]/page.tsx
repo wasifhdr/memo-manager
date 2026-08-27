@@ -75,8 +75,8 @@ export default async function MemoDetailPage({
       {memo.status === 'draft' && isAuthor ? (
         <Card>
           <CardBody className="flex flex-wrap items-center justify-between gap-3">
-            <p className="text-[0.8125rem] text-(--text-muted)">
-              This memo is still a draft. <a href={`/memos/${memo.id}/edit`} className="text-(--accent) hover:underline">Edit it</a> or submit it into the workflow.
+            <p className="text-[0.8125rem] text-(--color-ink)/70">
+              This memo is still a draft. <a href={`/memos/${memo.id}/edit`} className="text-(--color-orange-deep) hover:underline">Edit it</a> or submit it into the workflow.
             </p>
             <SubmitControl memoId={memo.id} />
           </CardBody>
@@ -89,8 +89,8 @@ export default async function MemoDetailPage({
             <h2 className="text-sm font-semibold">Changes were requested</h2>
           </CardHeader>
           <CardBody className="flex flex-col gap-3">
-            <p className="text-[0.8125rem] text-(--text-muted)">
-              <a href={`/memos/${memo.id}/edit`} className="text-(--accent) hover:underline">Revise the memo</a>, then resubmit it into the workflow.
+            <p className="text-[0.8125rem] text-(--color-ink)/70">
+              <a href={`/memos/${memo.id}/edit`} className="text-(--color-orange-deep) hover:underline">Revise the memo</a>, then resubmit it into the workflow.
             </p>
             <ResubmitControl memoId={memo.id} />
           </CardBody>

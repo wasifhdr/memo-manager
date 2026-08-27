@@ -57,8 +57,8 @@ export function OutgoingRow({
   return (
     <li className="flex items-center justify-between gap-3 py-2.5">
       <div className="min-w-0">
-        <p className="text-[0.8125rem] font-medium text-(--text)">{d.delegateName}</p>
-        <p className="text-[0.75rem] text-(--text-faint)">
+        <p className="text-[0.8125rem] font-medium text-(--color-ink)">{d.delegateName}</p>
+        <p className="text-[0.75rem] text-(--color-ink)/50">
           {formatDate(d.startAt)} – {formatDate(d.endAt)}{d.reason ? ` · ${d.reason}` : ''}
         </p>
       </div>
@@ -83,8 +83,8 @@ export function IncomingRow({
   return (
     <li className="flex items-center justify-between gap-3 py-2.5">
       <div className="min-w-0">
-        <p className="text-[0.8125rem] font-medium text-(--text)">{d.delegatorName}</p>
-        <p className="text-[0.75rem] text-(--text-faint)">
+        <p className="text-[0.8125rem] font-medium text-(--color-ink)">{d.delegatorName}</p>
+        <p className="text-[0.75rem] text-(--color-ink)/50">
           {formatDate(d.startAt)} – {formatDate(d.endAt)}{d.reason ? ` · ${d.reason}` : ''}
         </p>
       </div>

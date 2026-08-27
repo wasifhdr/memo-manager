@@ -13,13 +13,13 @@ export const metadata: Metadata = { title: 'Inbox' }
 type Row = Awaited<ReturnType<typeof listInbox>>['rows'][number]
 
 const columns: Column<Row>[] = [
-  { key: 'number', header: 'Memo #', render: (r) => <span className="font-mono-nums text-(--text-muted)">{r.memoNumber}</span> },
+  { key: 'number', header: 'Memo #', render: (r) => <span className="font-mono-nums text-(--color-ink)/70">{r.memoNumber}</span> },
   { key: 'subject', header: 'Subject', render: (r) => <span className="font-medium">{r.subject}</span> },
   { key: 'sender', header: 'Sender', render: (r) => r.authorName },
   { key: 'department', header: 'Department', render: (r) => r.departmentName ?? '—' },
   { key: 'priority', header: 'Priority', render: (r) => <PriorityBadge priority={r.priority} /> },
   { key: 'action', header: 'Required action', render: (r) => (r.requiredAction === 'review' ? 'Review' : 'Approve') },
-  { key: 'age', header: 'Age', align: 'right', render: (r) => <span className="font-mono-nums text-(--text-faint)">{formatAge(r.submittedAt)}</span> },
+  { key: 'age', header: 'Age', align: 'right', render: (r) => <span className="font-mono-nums text-(--color-ink)/50">{formatAge(r.submittedAt)}</span> },
 ]
 
 export default async function InboxPage({

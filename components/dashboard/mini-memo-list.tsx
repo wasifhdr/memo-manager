@@ -11,13 +11,13 @@ export function MiniMemoList({
 }) {
   if (items.length === 0) return <EmptyState title={emptyText} />
   return (
-    <ul className="flex flex-col divide-y divide-(--border)">
+    <ul className="flex flex-col divide-y divide-(--color-sand)">
       {items.map((m) => (
         <li key={m.id}>
-          <Link href={`/memos/${m.id}`} className="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0 hover:text-(--accent)">
+          <Link href={`/memos/${m.id}`} className="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0 hover:text-(--color-orange-deep)">
             <span className="min-w-0">
-              <span className="block truncate text-[0.8125rem] font-medium text-(--text)">{m.subject}</span>
-              <span className="block font-mono-nums text-[0.75rem] text-(--text-faint)">
+              <span className="block truncate text-[0.8125rem] font-bold text-(--color-ink)">{m.subject}</span>
+              <span className="block font-mono-nums text-[0.75rem] text-(--color-ink)/50">
                 {m.memoNumber}{m.caption ? ` · ${m.caption}` : ''}
               </span>
             </span>
