@@ -272,3 +272,37 @@ export async function listCompleted(ctx: TenantContext, f: MemoListFilters) {
     total: count,
   }
 }
+
+/** Version metadata (no body) for anyone who can view the memo. §17. */
+export async function listVersions(ctx: TenantContext, memoId: string) {
+  const access = await getMemoAccess(ctx, memoId)
+  if (!access?.canView) return null
+
+  const editor = alias(users, 'version_editor')
+  return db.select({
+    versionNo: memoVersions.versionNo, editorName: editor.name,
+    createdAt: memoVersions.createdAt, submittedAt: memoVersions.submittedAt,
+  }).from(memoVersions)
+    .innerJoin(editor, eq(editor.id, memoVersions.editorId))
+    .where(and(eq(memoVersions.memoId, memoId), eq(memoVersions.orgId, ctx.orgId)))
+    .orderBy(asc(memoVersions.versionNo))
+}
+
+/** One version's full content — nothing in the app ever updates this row. §17. */
+export async function getVersion(ctx: TenantContext, memoId: string, versionNo: number) {
+  const access = await getMemoAccess(ctx, memoId)
+  if (!access?.canView) return null
+
+  const editor = alias(users, 'single_version_editor')
+  const [version] = await db.select({
+    versionNo: memoVersions.versionNo, subject: memoVersions.subject, bodyHtml: memoVersions.bodyHtml,
+    editorName: editor.name, createdAt: memoVersions.createdAt, submittedAt: memoVersions.submittedAt,
+  }).from(memoVersions)
+    .innerJoin(editor, eq(editor.id, memoVersions.editorId))
+    .where(and(
+      eq(memoVersions.memoId, memoId), eq(memoVersions.orgId, ctx.orgId),
+      eq(memoVersions.versionNo, versionNo),
+    ))
+    .limit(1)
+  return version ?? null
+}

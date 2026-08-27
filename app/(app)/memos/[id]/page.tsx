@@ -60,6 +60,11 @@ export default async function MemoDetailPage({
           <>
             <PriorityBadge priority={memo.priority} />
             <StatusBadge status={memo.status} />
+            {detail.versions.length > 1 ? (
+              <LinkButton href={`/memos/${memo.id}/versions`} variant="ghost" size="sm">
+                {detail.versions.length} versions
+              </LinkButton>
+            ) : null}
             <LinkButton href={`/api/memos/${memo.id}/pdf`} variant="secondary" size="sm">
               Export PDF
             </LinkButton>

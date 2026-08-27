@@ -75,3 +75,18 @@ export async function listTemplatesWithSteps(ctx: TenantContext) {
       .map((s) => ({ positionTitle: s.positionTitle, requiredAction: s.requiredAction })),
   }))
 }
+
+/** Every template — active and inactive — with steps, for admin management. */
+export async function listAllTemplatesWithSteps(ctx: TenantContext) {
+  const templates = await listTemplates(ctx)
+  const steps = await db.select().from(workflowTemplateSteps)
+    .where(eq(workflowTemplateSteps.orgId, ctx.orgId))
+    .orderBy(asc(workflowTemplateSteps.stepNo))
+
+  return templates.map((t) => ({
+    id: t.id, name: t.name, description: t.description, active: t.active,
+    steps: steps
+      .filter((s) => s.templateId === t.id)
+      .map((s) => ({ positionTitle: s.positionTitle, requiredAction: s.requiredAction })),
+  }))
+}
