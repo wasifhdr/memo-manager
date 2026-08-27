@@ -5,6 +5,7 @@ import { listDepartments, listCategories } from '@/lib/repo/org'
 import { PageHeader } from '@/components/ui/page-header'
 import { Card, CardHeader, CardBody } from '@/components/ui/card'
 import { StatTile } from '@/components/dashboard/stat-tile'
+import { IconFlame, IconClock, IconXCircle, IconEdit } from '@/components/ui/icons'
 import { Select, Input, Label } from '@/components/ui/field'
 import { Button } from '@/components/ui/button'
 import { StatusBadge } from '@/components/ui/badge'
@@ -82,10 +83,10 @@ export default async function ReportsPage({
       </form>
 
       <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatTile label="Urgent memos" value={report.urgentCount} tone="urgent" />
-        <StatTile label="Pending approvals" value={report.pendingApprovals} />
-        <StatTile label="Rejected" value={report.rejectedCount} />
-        <StatTile label="Change requests" value={report.changeRequestCount} />
+        <StatTile label="Urgent memos" value={report.urgentCount} tone="urgent" icon={IconFlame} />
+        <StatTile label="Pending approvals" value={report.pendingApprovals} tone="info" icon={IconClock} />
+        <StatTile label="Rejected" value={report.rejectedCount} tone="danger" icon={IconXCircle} />
+        <StatTile label="Change requests" value={report.changeRequestCount} tone="review" icon={IconEdit} />
         <div className="col-span-2 rounded-[var(--radius-card)] border border-(--color-sand) bg-(--color-paper) px-4 py-3.5 sm:col-span-4">
           <p className="font-mono-nums text-2xl font-semibold text-(--color-ink)">
             {report.avgCompletionHours != null ? `${report.avgCompletionHours.toFixed(1)}h` : '—'}

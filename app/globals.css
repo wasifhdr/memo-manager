@@ -118,6 +118,28 @@
   background-size: 22px 22px;
 }
 
+/* -- Motion --------------------------------------------------------
+   Two small, reusable entrances. Everything is opacity + transform only
+   so nothing triggers layout. Honoured by the reduced-motion block in
+   @layer base below. */
+@keyframes pop-in {
+  from { opacity: 0; transform: translateY(-4px) scale(0.985); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes fade-rise {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Dropdown / popover entrance */
+@utility animate-pop-in {
+  animation: pop-in 120ms ease-out both;
+}
+/* Page + panel content entrance, used on route change */
+@utility animate-fade-rise {
+  animation: fade-rise 240ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
 /* Hard-offset shadow utilities (arbitrary box-shadow values collide with
    Tailwind's shadow-* scale, so these are named utilities instead). */
 @utility shadow-offset-sm {
@@ -130,19 +152,42 @@
   box-shadow: var(--shadow-offset-lg);
 }
 
-* {
-  border-color: var(--color-sand);
-}
+/* ------------------------------------------------------------------
+   Everything below is element-level defaulting, so it MUST live in
+   @layer base. Tailwind v4 emits its utilities into @layer utilities,
+   and unlayered CSS outranks *every* layered rule regardless of
+   specificity — an unlayered `* { border-color }` / `a { color }` here
+   silently beat every border-* and text-* utility in the app (ink
+   borders rendered sand; white button text rendered orange-deep, which
+   went invisible on an orange-deep hover). Keep these layered.
+   ------------------------------------------------------------------ */
+@layer base {
+  * {
+    border-color: var(--color-sand);
+  }
 
-html {
-  background: var(--color-cream);
-}
+  html {
+    background: var(--color-cream);
+  }
 
-body {
-  background: var(--color-cream);
-  color: var(--color-ink);
-  font-family: var(--font-sans);
-  font-size: 15px;
+  body {
+    background: var(--color-cream);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 15px;
+  }
+
+  /* Motion is decorative here — never make someone sit through it. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }
 
 .font-mono-nums {
@@ -182,33 +227,37 @@ body {
 }
 
 /* -- Browser surfaces: theme what the browser draws by default -- */
-::selection {
-  background: color-mix(in srgb, var(--color-orange) 25%, transparent);
-  color: var(--color-ink);
-}
+@layer base {
+  ::selection {
+    background: color-mix(in srgb, var(--color-orange) 25%, transparent);
+    color: var(--color-ink);
+  }
 
-:focus-visible {
-  outline: 3px solid var(--color-ink);
-  outline-offset: 2px;
-}
+  :focus-visible {
+    outline: 3px solid var(--color-ink);
+    outline-offset: 2px;
+  }
 
-* {
-  scrollbar-color: var(--color-sand) transparent;
-  scrollbar-width: thin;
-}
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background-color: var(--color-sand);
-  border-radius: 999px;
-  border: 2px solid var(--color-cream);
-}
+  * {
+    scrollbar-color: var(--color-sand) transparent;
+    scrollbar-width: thin;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--color-sand);
+    border-radius: 999px;
+    border: 2px solid var(--color-cream);
+  }
 
-a {
-  color: var(--color-orange-deep);
+  /* Default link colour only — any text-* utility on an <a> must win,
+     which is exactly what layering this buys us. */
+  a {
+    color: var(--color-orange-deep);
+  }
 }

@@ -11,20 +11,20 @@ import { Card, CardBody } from '@/components/ui/card'
 type Option = { value: string; label: string }
 
 export function NewMemoForm({
-  departments, categories,
+  departments, categories, bare = false,
 }: {
   departments: Option[]
   categories: Option[]
+  /** Rendered inside a modal: drop the Card chrome and the autofocus. */
+  bare?: boolean
 }) {
   const [state, formAction, pending] = useActionState<ActionState, FormData>(createDraftAction, undefined)
 
-  return (
-    <form action={formAction}>
-      <Card>
-        <CardBody className="flex flex-col gap-4">
+  const fields = (
+    <div className="flex flex-col gap-4">
           <div>
             <Label htmlFor="subject">Subject</Label>
-            <Input id="subject" name="subject" required maxLength={200} placeholder="What is this memo about?" autoFocus />
+            <Input id="subject" name="subject" required maxLength={200} placeholder="What is this memo about?" autoFocus={!bare} />
           </div>
 
           <div className="grid gap-4 sm:grid-cols-3">
@@ -64,8 +64,12 @@ export function NewMemoForm({
               You will add workflow participants and attachments on the next screen.
             </p>
           </div>
-        </CardBody>
-      </Card>
+    </div>
+  )
+
+  return (
+    <form action={formAction}>
+      {bare ? fields : <Card><CardBody>{fields}</CardBody></Card>}
     </form>
   )
 }

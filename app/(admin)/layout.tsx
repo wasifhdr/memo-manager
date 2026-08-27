@@ -2,7 +2,6 @@ import { requireAdmin } from '@/lib/tenant'
 import { getOrganization } from '@/lib/repo/org'
 import { unreadCount } from '@/lib/repo/notifications'
 import { AppShell } from '@/components/app-shell'
-import { AdminSubNav } from '@/components/admin-sub-nav'
 import { logoutAction } from '@/app/(auth)/actions'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -17,7 +16,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       userRole={ctx.user.role}
       unreadCount={unread}
       logoutAction={logoutAction}
-      secondaryNav={<AdminSubNav />}
     >
       {children}
     </AppShell>

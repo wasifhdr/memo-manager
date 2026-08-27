@@ -1,10 +1,11 @@
 import type { Metadata } from 'next'
 import { requireSession } from '@/lib/tenant'
+import { listDepartments, listCategories } from '@/lib/repo/org'
 import { listMyMemos } from '@/lib/repo/memo'
 import { PageHeader } from '@/components/ui/page-header'
+import { NewMemoButton } from '@/components/memo/new-memo-button'
 import { DataTable, type Column } from '@/components/ui/data-table'
 import { StatusBadge, PriorityBadge } from '@/components/ui/badge'
-import { LinkButton } from '@/components/ui/button'
 import { ListFilters, STATUS_OPTIONS } from '@/components/memo/list-filters'
 import { formatDate } from '@/lib/format'
 import type { MemoStatus } from '@/db/schema'
@@ -29,6 +30,12 @@ export default async function MyMemosPage({
   searchParams: Promise<{ status?: string }>
 }) {
   const ctx = await requireSession()
+  const [departments, categories] = await Promise.all([
+    listDepartments(ctx, { activeOnly: true }),
+    listCategories(ctx, { activeOnly: true }),
+  ])
+  const departmentOptions = departments.map((d) => ({ value: d.id, label: d.name }))
+  const categoryOptions = categories.map((c) => ({ value: c.id, label: c.name }))
   const { status } = await searchParams
   const statusFilter = STATUS_OPTIONS.some((o) => o.value === status) ? (status as MemoStatus) : undefined
 
@@ -39,7 +46,7 @@ export default async function MyMemosPage({
       <PageHeader
         title="My Memos"
         description={`${total} memo${total === 1 ? '' : 's'} you have created.`}
-        actions={<LinkButton href="/memos/new">New memo</LinkButton>}
+        actions={<NewMemoButton departments={departmentOptions} categories={categoryOptions} />}
       />
       <ListFilters action="/memos" statusOptions={STATUS_OPTIONS} current={{ status }} />
       <DataTable

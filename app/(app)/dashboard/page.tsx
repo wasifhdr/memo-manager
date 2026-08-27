@@ -1,10 +1,12 @@
 import type { Metadata } from 'next'
 import { requireSession } from '@/lib/tenant'
+import { listDepartments, listCategories } from '@/lib/repo/org'
 import { userDashboard } from '@/lib/repo/stats'
 import { PageHeader } from '@/components/ui/page-header'
+import { NewMemoButton } from '@/components/memo/new-memo-button'
 import { Card, CardHeader, CardBody } from '@/components/ui/card'
-import { LinkButton } from '@/components/ui/button'
 import { StatTile } from '@/components/dashboard/stat-tile'
+import { IconBell, IconClock, IconEdit, IconFlame } from '@/components/ui/icons'
 import { MiniMemoList } from '@/components/dashboard/mini-memo-list'
 import { RecentActivity } from '@/components/dashboard/recent-activity'
 
@@ -12,20 +14,26 @@ export const metadata: Metadata = { title: 'Dashboard' }
 
 export default async function DashboardPage() {
   const ctx = await requireSession()
+  const [departments, categories] = await Promise.all([
+    listDepartments(ctx, { activeOnly: true }),
+    listCategories(ctx, { activeOnly: true }),
+  ])
+  const departmentOptions = departments.map((d) => ({ value: d.id, label: d.name }))
+  const categoryOptions = categories.map((c) => ({ value: c.id, label: c.name }))
   const d = await userDashboard(ctx)
 
   return (
     <div>
       <PageHeader
         title={`Welcome back, ${ctx.user.name.split(' ')[0]}`}
-        actions={<LinkButton href="/memos/new">New memo</LinkButton>}
+        actions={<NewMemoButton departments={departmentOptions} categories={categoryOptions} />}
       />
 
       <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatTile label="Awaiting your action" value={d.awaitingMyAction.total} />
-        <StatTile label="Pending approvals" value={d.pendingApprovals} />
-        <StatTile label="Pending reviews" value={d.pendingReviews} />
-        <StatTile label="Urgent memos" value={d.urgentMemos} tone="urgent" />
+        <StatTile label="Awaiting your action" value={d.awaitingMyAction.total} tone="accent" icon={IconBell} />
+        <StatTile label="Pending approvals" value={d.pendingApprovals} tone="info" icon={IconClock} />
+        <StatTile label="Pending reviews" value={d.pendingReviews} tone="review" icon={IconEdit} />
+        <StatTile label="Urgent memos" value={d.urgentMemos} tone="urgent" icon={IconFlame} />
       </div>
 
       <div className="mb-6 grid gap-6 lg:grid-cols-3">

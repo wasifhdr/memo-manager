@@ -5,6 +5,9 @@ import { PageHeader } from '@/components/ui/page-header'
 import { Card, CardHeader, CardBody } from '@/components/ui/card'
 import { StatTile } from '@/components/dashboard/stat-tile'
 import { RecentActivity } from '@/components/dashboard/recent-activity'
+import {
+  IconUsers, IconCheckCircle, IconBuilding, IconDocument, IconClock, IconXCircle,
+} from '@/components/ui/icons'
 
 export const metadata: Metadata = { title: 'Administration' }
 
@@ -17,13 +20,13 @@ export default async function AdminOverviewPage() {
       <PageHeader title="Organization overview" description="Organization-wide statistics and recent system activity." />
 
       <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatTile label="Users" value={d.userCount} />
-        <StatTile label="Active users" value={d.activeUserCount} />
-        <StatTile label="Departments" value={d.departmentCount} />
-        <StatTile label="Total memos" value={d.memoCount} />
-        <StatTile label="Pending workflows" value={d.pendingWorkflows} />
-        <StatTile label="Completed workflows" value={d.completedWorkflows} />
-        <StatTile label="Rejected workflows" value={d.rejectedWorkflows} />
+        <StatTile label="Users" value={d.userCount} icon={IconUsers} />
+        <StatTile label="Active users" value={d.activeUserCount} tone="info" icon={IconCheckCircle} />
+        <StatTile label="Departments" value={d.departmentCount} icon={IconBuilding} />
+        <StatTile label="Total memos" value={d.memoCount} tone="accent" icon={IconDocument} />
+        <StatTile label="Pending workflows" value={d.pendingWorkflows} tone="info" icon={IconClock} />
+        <StatTile label="Completed workflows" value={d.completedWorkflows} tone="success" icon={IconCheckCircle} />
+        <StatTile label="Rejected workflows" value={d.rejectedWorkflows} tone="danger" icon={IconXCircle} />
       </div>
 
       <Card>
