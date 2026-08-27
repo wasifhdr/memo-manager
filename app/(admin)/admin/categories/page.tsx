@@ -3,7 +3,7 @@ import { requireAdmin } from '@/lib/tenant'
 import { listCategories } from '@/lib/repo/org'
 import { PageHeader } from '@/components/ui/page-header'
 import { EmptyState } from '@/components/ui/empty-state'
-import { NewCategoryForm } from './new-category-form'
+import { NewCategoryButton } from './new-category-form'
 import { CategoryRow } from './category-row'
 
 export const metadata: Metadata = { title: 'Memo Categories' }
@@ -14,12 +14,14 @@ export default async function CategoriesPage() {
 
   return (
     <div>
-      <PageHeader title="Memo Categories" description="Categories help organize and filter memos across the organization." />
-
-      <NewCategoryForm />
+      <PageHeader
+        title="Memo Categories"
+        description="Categories help organize and filter memos across the organization."
+        actions={<NewCategoryButton />}
+      />
 
       {cats.length === 0 ? (
-        <EmptyState title="No categories yet" description="Add your first category above." />
+        <EmptyState title="No categories yet" description="Add your first category to get started." />
       ) : (
         <div className="overflow-x-auto rounded-[var(--radius-card)] border border-(--color-sand) bg-(--color-paper)">
           <table className="w-full min-w-[36rem] border-collapse text-sm">

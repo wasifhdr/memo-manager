@@ -5,7 +5,7 @@ import { listActiveUsers } from '@/lib/repo/org'
 import { PageHeader } from '@/components/ui/page-header'
 import { Card, CardHeader, CardBody } from '@/components/ui/card'
 import { EmptyState } from '@/components/ui/empty-state'
-import { NewDelegationForm, OutgoingRow, IncomingRow } from './delegation-forms'
+import { NewDelegationButton, OutgoingRow, IncomingRow } from './delegation-forms'
 
 export const metadata: Metadata = { title: 'Delegations' }
 
@@ -24,14 +24,8 @@ export default async function DelegationsPage() {
       <PageHeader
         title="Delegations"
         description="Let another user act on your behalf for a specified period. Their actions record both identities."
+        actions={<NewDelegationButton users={delegateOptions} />}
       />
-
-      <Card>
-        <CardHeader><h2 className="text-sm font-semibold">Delegate your authority</h2></CardHeader>
-        <CardBody>
-          <NewDelegationForm users={delegateOptions} />
-        </CardBody>
-      </Card>
 
       <Card>
         <CardHeader><h2 className="text-sm font-semibold">Your delegations</h2></CardHeader>

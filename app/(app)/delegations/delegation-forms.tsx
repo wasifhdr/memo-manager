@@ -1,25 +1,31 @@
 'use client'
 
-import { useActionState, useRef } from 'react'
+import { useActionState, useEffect, useRef } from 'react'
 import { createDelegation, revokeDelegation } from './actions'
 import type { ActionState } from '@/app/(auth)/actions'
 import { Button } from '@/components/ui/button'
 import { Input, Label, Select, Textarea, FieldError } from '@/components/ui/field'
 import { Badge } from '@/components/ui/badge'
+import { ModalFormButton } from '@/components/ui/modal-form-button'
 import { formatDate } from '@/lib/format'
 
 type Option = { value: string; label: string }
 
-export function NewDelegationForm({ users }: { users: Option[] }) {
+export function NewDelegationForm({ users, onDone }: { users: Option[]; onDone?: () => void }) {
   const [state, formAction, pending] = useActionState<ActionState, FormData>(createDelegation, undefined)
   const ref = useRef<HTMLFormElement>(null)
+  const last = useRef<ActionState>(undefined)
+
+  useEffect(() => {
+    if (state && state !== last.current && state.ok) {
+      ref.current?.reset()
+      onDone?.()
+    }
+    last.current = state
+  }, [state, onDone])
 
   return (
-    <form
-      ref={ref}
-      action={(fd) => { formAction(fd); ref.current?.reset() }}
-      className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
-    >
+    <form ref={ref} action={formAction} className="grid gap-4 sm:grid-cols-2">
       <div>
         <Label htmlFor="delegateId">Delegate to</Label>
         <Select id="delegateId" name="delegateId" placeholder="Choose a user" options={users} required />
@@ -32,15 +38,18 @@ export function NewDelegationForm({ users }: { users: Option[] }) {
         <Label htmlFor="endDate">End date</Label>
         <Input id="endDate" name="endDate" type="date" required />
       </div>
-      <div>
+      <div className="sm:col-span-2">
         <Label htmlFor="reason" hint="optional">Reason</Label>
         <Input id="reason" name="reason" placeholder="e.g. annual leave" />
       </div>
-      <div className="sm:col-span-2 lg:col-span-4">
+      <div className="sm:col-span-2">
         <FieldError>{state && 'error' in state ? state.error : undefined}</FieldError>
-        <Button type="submit" size="sm" disabled={pending} className="mt-1">
-          {pending ? 'Creating…' : 'Create delegation'}
-        </Button>
+        <div className="mt-1 flex justify-end gap-2">
+          <Button type="button" variant="ghost" onClick={onDone}>Cancel</Button>
+          <Button type="submit" disabled={pending}>
+            {pending ? 'Creating…' : 'Create delegation'}
+          </Button>
+        </div>
       </div>
     </form>
   )
@@ -98,4 +107,13 @@ function StatusChip({ status, endAt }: { status: string; endAt: Date | string })
   if (status === 'revoked') return <Badge className="opacity-70">Revoked</Badge>
   if (expired) return <Badge className="opacity-70">Expired</Badge>
   return <Badge>Active</Badge>
+}
+
+/** Client wrapper: a server page cannot pass ModalFormButton's function child. */
+export function NewDelegationButton({ users }: { users: Option[] }) {
+  return (
+    <ModalFormButton label="New delegation" title="Delegate your authority" size="lg">
+      {(close) => <NewDelegationForm users={users} onDone={close} />}
+    </ModalFormButton>
+  )
 }

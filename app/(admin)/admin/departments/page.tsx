@@ -3,7 +3,7 @@ import { requireAdmin } from '@/lib/tenant'
 import { listDepartments } from '@/lib/repo/org'
 import { PageHeader } from '@/components/ui/page-header'
 import { EmptyState } from '@/components/ui/empty-state'
-import { NewDepartmentForm } from './new-department-form'
+import { NewDepartmentButton } from './new-department-form'
 import { DepartmentRow } from './department-row'
 
 export const metadata: Metadata = { title: 'Departments' }
@@ -14,12 +14,14 @@ export default async function DepartmentsPage() {
 
   return (
     <div>
-      <PageHeader title="Departments" description="Organize users by department. Departments are deactivated, never deleted, so memo history stays intact." />
-
-      <NewDepartmentForm />
+      <PageHeader
+        title="Departments"
+        description="Organize users by department. Departments are deactivated, never deleted, so memo history stays intact."
+        actions={<NewDepartmentButton />}
+      />
 
       {depts.length === 0 ? (
-        <EmptyState title="No departments yet" description="Add your first department above." />
+        <EmptyState title="No departments yet" description="Add your first department to get started." />
       ) : (
         <div className="overflow-x-auto rounded-[var(--radius-card)] border border-(--color-sand) bg-(--color-paper)">
           <table className="w-full min-w-[36rem] border-collapse text-sm">

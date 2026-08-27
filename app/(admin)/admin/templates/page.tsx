@@ -17,12 +17,11 @@ export default async function TemplatesPage() {
       <PageHeader
         title="Workflow Templates"
         description="Reusable ordered position sequences authors can start a memo's workflow from."
+        actions={<NewTemplate />}
       />
 
-      <NewTemplate />
-
       {templates.length === 0 ? (
-        <EmptyState title="No templates yet" description="Create one above to give authors a starting point." />
+        <EmptyState title="No templates yet" description="Create one to give authors a starting point." />
       ) : (
         templates.map((t) => <TemplateCard key={t.id} template={t} />)
       )}

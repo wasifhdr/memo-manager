@@ -1,30 +1,49 @@
 'use client'
 
-import { useActionState, useRef } from 'react'
+import { useActionState, useEffect, useRef } from 'react'
 import { createCategory } from './actions'
 import type { ActionState } from '@/app/(auth)/actions'
 import { Button } from '@/components/ui/button'
-import { Input, FieldError } from '@/components/ui/field'
+import { Input, Label, FieldError } from '@/components/ui/field'
+import { ModalFormButton } from '@/components/ui/modal-form-button'
 
-export function NewCategoryForm() {
+export function NewCategoryForm({ onDone }: { onDone?: () => void }) {
   const [state, formAction, pending] = useActionState<ActionState, FormData>(createCategory, undefined)
   const ref = useRef<HTMLFormElement>(null)
+  const last = useRef<ActionState>(undefined)
+
+  useEffect(() => {
+    if (state && state !== last.current && state.ok) {
+      ref.current?.reset()
+      onDone?.()
+    }
+    last.current = state
+  }, [state, onDone])
 
   return (
-    <form
-      ref={ref}
-      action={(fd) => { formAction(fd); ref.current?.reset() }}
-      className="mb-5 flex flex-wrap items-end gap-2"
-    >
+    <form ref={ref} action={formAction} className="flex flex-col gap-4">
       <div>
-        <label className="mb-1.5 block text-[0.8125rem] font-medium text-(--color-ink)" htmlFor="new-cat-name">
-          New category
-        </label>
-        <Input id="new-cat-name" name="name" placeholder="Category name" required className="w-56" />
+        <Label htmlFor="new-cat-name">Name</Label>
+        <Input id="new-cat-name" name="name" placeholder="e.g. Procurement" required autoFocus />
       </div>
-      <Input name="description" placeholder="Description (optional)" className="w-64" />
-      <Button type="submit" disabled={pending}>{pending ? 'Adding…' : 'Add category'}</Button>
+      <div>
+        <Label htmlFor="new-cat-desc" hint="optional">Description</Label>
+        <Input id="new-cat-desc" name="description" placeholder="What this category covers" />
+      </div>
       <FieldError>{state && 'error' in state ? state.error : undefined}</FieldError>
+      <div className="flex justify-end gap-2">
+        <Button type="button" variant="ghost" onClick={onDone}>Cancel</Button>
+        <Button type="submit" disabled={pending}>{pending ? 'Adding…' : 'Add category'}</Button>
+      </div>
     </form>
+  )
+}
+
+/** Client wrapper: a server page cannot pass ModalFormButton's function child. */
+export function NewCategoryButton() {
+  return (
+    <ModalFormButton label="Add category" title="Add a category" size="md">
+      {(close) => <NewCategoryForm onDone={close} />}
+    </ModalFormButton>
   )
 }

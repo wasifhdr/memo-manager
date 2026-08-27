@@ -3,7 +3,7 @@ import { requireAdmin } from '@/lib/tenant'
 import { listUsers, listDepartments } from '@/lib/repo/org'
 import { PageHeader } from '@/components/ui/page-header'
 import { EmptyState } from '@/components/ui/empty-state'
-import { NewUserForm } from './new-user-form'
+import { NewUserButton } from './new-user-button'
 import { UserRow } from './user-row'
 
 export const metadata: Metadata = { title: 'Users' }
@@ -17,12 +17,14 @@ export default async function UsersPage() {
 
   return (
     <div>
-      <PageHeader title="Users" description="Invite users, assign departments and roles, and activate or deactivate accounts." />
-
-      <NewUserForm departments={departmentOptions} />
+      <PageHeader
+        title="Users"
+        description="Invite users, assign departments and roles, and activate or deactivate accounts."
+        actions={<NewUserButton departments={departmentOptions} />}
+      />
 
       {userRows.length === 0 ? (
-        <EmptyState title="No users yet" description="Add your first user above." />
+        <EmptyState title="No users yet" description="Add your first user to get started." />
       ) : (
         <div className="overflow-x-auto rounded-[var(--radius-card)] border border-(--color-sand) bg-(--color-paper)">
           <table className="w-full min-w-[52rem] border-collapse text-sm">

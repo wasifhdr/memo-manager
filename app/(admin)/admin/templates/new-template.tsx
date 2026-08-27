@@ -1,19 +1,12 @@
 'use client'
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardBody } from '@/components/ui/card'
+import { ModalFormButton } from '@/components/ui/modal-form-button'
 import { TemplateForm } from './template-form'
 
 export function NewTemplate() {
-  const [open, setOpen] = useState(false)
-  if (!open) return <Button size="sm" onClick={() => setOpen(true)}>New template</Button>
-
   return (
-    <Card className="mb-2">
-      <CardBody>
-        <TemplateForm mode="create" onDone={() => setOpen(false)} />
-      </CardBody>
-    </Card>
+    <ModalFormButton label="New template" title="New workflow template" size="xl">
+      {(close) => <TemplateForm mode="create" onDone={close} />}
+    </ModalFormButton>
   )
 }
