@@ -147,6 +147,12 @@ export async function actOnMemo(
 
     const current = allSteps.find((s) => s.stepNo === memo.currentStepNo)
     if (!current) return { ok: false, error: 'Workflow step not found.' }
+    if (current.outcome !== 'pending') {
+      // The current step already recorded a decision (most commonly
+      // request_changes, which leaves currentStepNo in place until the
+      // author resubmits) — no further decision can be layered on top of it.
+      return { ok: false, error: 'This step has already been decided. The author must resubmit before the workflow continues.' }
+    }
     if (!actsFor.has(current.assigneeUserId)) {
       return { ok: false, error: 'It is not your turn to act on this memo.' }
     }

@@ -189,6 +189,17 @@ describe('request changes and resubmission', () => {
     const r = await resubmitMemo(f.deptHeadCtx, f.memoId, 'resume')
     expect(r.ok).toBe(false)
   })
+
+  it('refuses a second decision on the same step once changes were requested', async () => {
+    await actOnMemo(f.deptHeadCtx, f.memoId, 'request_changes', 'Rework')
+    const r = await actOnMemo(f.deptHeadCtx, f.memoId, 'approve', null)
+    expect(r.ok).toBe(false)
+    expect(await statusOf(f.memoId)).toBe('changes_requested')
+
+    const [step1] = await db.select().from(workflowSteps)
+      .where(and(eq(workflowSteps.memoId, f.memoId), eq(workflowSteps.cycle, 1), eq(workflowSteps.stepNo, 1)))
+    expect(step1.outcome).toBe('changes_requested')
+  })
 })
 
 describe('comments', () => {

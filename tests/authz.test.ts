@@ -45,6 +45,13 @@ describe('getMemoAccess', () => {
     expect((await getMemoAccess(f.authorCtx, f.memoId))?.canEdit).toBe(true)
   })
 
+  it('denies canAct on a step that already requested changes, until resubmission', async () => {
+    await submitMemo(f.authorCtx, f.memoId)
+    await actOnMemo(f.deptHeadCtx, f.memoId, 'request_changes', 'Please revise')
+    const a = await getMemoAccess(f.deptHeadCtx, f.memoId)
+    expect(a?.canAct).toBe(false)
+  })
+
   it('denies every action once the memo is approved', async () => {
     await submitMemo(f.authorCtx, f.memoId)
     await actOnMemo(f.deptHeadCtx, f.memoId, 'approve', null)

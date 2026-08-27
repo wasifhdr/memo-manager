@@ -10,6 +10,9 @@ export type MemoAccess = {
   canAct: boolean
   canEdit: boolean
   canCancel: boolean
+  /** Mirrors workflow.ts's own comment rule: author, or a participant of the
+   * CURRENT cycle — not just the assignee whose turn it currently is. */
+  canComment: boolean
   /** Set when the viewer may act only because someone delegated to them. */
   actingForUserId: string | null
 }
@@ -47,6 +50,7 @@ export async function getMemoAccess(
     stepNo: workflowSteps.stepNo,
     cycle: workflowSteps.cycle,
     assignee: workflowSteps.assigneeUserId,
+    outcome: workflowSteps.outcome,
   }).from(workflowSteps).where(eq(workflowSteps.memoId, memoId))
 
   const delegators = await activeDelegatorIds(ctx, ctx.user.id, ex)
@@ -63,7 +67,10 @@ export async function getMemoAccess(
     const current = participation.find(
       (s) => s.cycle === memo.currentCycle && s.stepNo === memo.currentStepNo,
     )
-    if (current && actsFor.has(current.assignee)) {
+    // A step that already recorded a decision (typically request_changes,
+    // which leaves currentStepNo in place until the author resubmits) is not
+    // actionable again — mirrors the same guard in lib/workflow.ts.
+    if (current && current.outcome === 'pending' && actsFor.has(current.assignee)) {
       canAct = true
       actingForUserId = current.assignee === ctx.user.id ? null : current.assignee
     }
@@ -71,6 +78,10 @@ export async function getMemoAccess(
 
   const canEdit = isAuthor && (memo.status === 'draft' || memo.status === 'changes_requested')
   const canCancel = (isAuthor || isAdmin) && !terminal && memo.status !== 'draft'
+  const isCurrentCycleParticipant = participation.some(
+    (s) => s.cycle === memo.currentCycle && actsFor.has(s.assignee),
+  )
+  const canComment = !terminal && memo.currentCycle > 0 && (isAuthor || isCurrentCycleParticipant)
 
-  return { memoId, canView, canAct, canEdit, canCancel, actingForUserId }
+  return { memoId, canView, canAct, canEdit, canCancel, canComment, actingForUserId }
 }
