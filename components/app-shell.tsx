@@ -1,8 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+import { PAGE_ROOT_ID, PageTransition } from "@/components/motion/page-transition";
+import { directionFor, setDirection } from "@/components/motion/route-direction";
 import { NAV, ADMIN_NAV, type NavItem } from "@/components/nav";
 import { IconChevronDown, IconChevronLeft, IconClose, IconLogout, IconMenu } from "@/components/ui/icons";
 
@@ -26,6 +30,8 @@ export function AppShell({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const shellRef = useRef<HTMLDivElement>(null);
   const orgInitial = orgName.trim().charAt(0).toUpperCase() || "M";
   const isAdmin = userRole === "org_admin";
   const isAdminRoute = pathname.startsWith("/admin");
@@ -61,6 +67,36 @@ export function AppShell({
     return () => { document.body.style.overflow = prev; };
   }, [drawerOpen]);
 
+  // useGSAP gives us contextSafe so the exit tween is registered in a context
+  // and reverted if the shell unmounts mid-flight.
+  const { contextSafe } = useGSAP({ scope: shellRef });
+
+  const navigateWithTransition = contextSafe((e: React.MouseEvent, href: string) => {
+    // let the browser handle modified clicks (new tab, etc.)
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    e.preventDefault();
+    if (href === pathname) return;
+
+    const dir = directionFor(pathname, href);
+    setDirection(dir);
+
+    const root = document.getElementById(PAGE_ROOT_ID);
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!root || reduce) {
+      router.push(href);
+      return;
+    }
+
+    gsap.to(root, {
+      autoAlpha: 0,
+      y: -22 * dir,
+      duration: 0.19,
+      ease: "power2.in",
+      overwrite: true,
+      onComplete: () => router.push(href),
+    });
+  });
+
   const isActive = (href: string) => {
     if (href === "/dashboard" || href === "/admin") return pathname === href;
     return pathname === href || pathname.startsWith(href + "/");
@@ -77,6 +113,7 @@ export function AppShell({
       <Link
         key={item.href}
         href={item.href}
+        onClick={(e) => navigateWithTransition(e, item.href)}
         aria-current={active ? "page" : undefined}
         title={mini ? item.label : undefined}
         className={`group relative flex items-center rounded-[var(--radius-control)] py-2 text-sm font-bold transition-colors duration-150 ${
@@ -233,7 +270,7 @@ export function AppShell({
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div ref={shellRef} className="flex min-h-screen">
       <aside
         className={`sticky top-0 hidden h-screen shrink-0 flex-col bg-(--color-ink) text-(--color-paper) transition-[width] duration-200 lg:flex ${
           collapsed ? "w-16" : "w-64"
@@ -280,8 +317,8 @@ export function AppShell({
           ) : null}
         </header>
 
-        <main key={pathname} className="animate-fade-rise mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
-          {children}
+        <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
+          <PageTransition key={pathname}>{children}</PageTransition>
         </main>
       </div>
     </div>

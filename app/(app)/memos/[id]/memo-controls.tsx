@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { useActionState, useState, useRef } from 'react'
 import { submitAction, resubmitAction, cancelAction } from './workflow-actions'
 import type { ActionState } from '@/app/(auth)/actions'
 import { Button } from '@/components/ui/button'
@@ -44,6 +44,7 @@ export function ResubmitControl({ memoId }: { memoId: string }) {
 
 export function CancelControl({ memoId }: { memoId: string }) {
   const [open, setOpen] = useState(false)
+  const triggerRef = useRef<HTMLButtonElement>(null)
   const [state, formAction, pending] = useActionState<ActionState, FormData>(
     (prev, fd) => cancelAction(prev, fd).then((r) => { if (r?.ok) setOpen(false); return r }),
     undefined,
@@ -51,8 +52,8 @@ export function CancelControl({ memoId }: { memoId: string }) {
 
   return (
     <>
-      <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(true)}>Cancel memo</Button>
-      <Modal open={open} onClose={() => setOpen(false)} title="Cancel this memo">
+      <Button ref={triggerRef} type="button" variant="ghost" size="sm" onClick={() => setOpen(true)}>Cancel memo</Button>
+      <Modal open={open} onClose={() => setOpen(false)} title="Cancel this memo" originRef={triggerRef}>
         <form action={formAction} className="flex flex-col gap-3">
           <input type="hidden" name="memoId" value={memoId} />
           <p className="text-[0.8125rem] text-(--color-ink)/70">

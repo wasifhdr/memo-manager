@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { useActionState, useState, useRef } from 'react'
 import { workflowAction } from '@/app/(app)/memos/[id]/workflow-actions'
 import type { ActionState } from '@/app/(auth)/actions'
 import { Button } from '@/components/ui/button'
@@ -39,6 +39,8 @@ function DecisionForm({ memoId, requiredAction }: { memoId: string; requiredActi
   const [approveState, approveAction, approvePending] = useActionState<ActionState, FormData>(workflowAction, undefined)
   const [rejectOpen, setRejectOpen] = useState(false)
   const [changesOpen, setChangesOpen] = useState(false)
+  const rejectRef = useRef<HTMLButtonElement>(null)
+  const changesRef = useRef<HTMLButtonElement>(null)
   const approveLabel = requiredAction === 'review' ? 'Complete review' : 'Approve'
   const approveActionValue = requiredAction === 'review' ? 'complete_review' : 'approve'
 
@@ -52,10 +54,10 @@ function DecisionForm({ memoId, requiredAction }: { memoId: string; requiredActi
           <Button type="submit" disabled={approvePending} size="sm">
             {approvePending ? 'Submitting…' : approveLabel}
           </Button>
-          <Button type="button" variant="secondary" size="sm" onClick={() => setChangesOpen(true)}>
+          <Button ref={changesRef} type="button" variant="secondary" size="sm" onClick={() => setChangesOpen(true)}>
             Request changes
           </Button>
-          <Button type="button" variant="danger" size="sm" onClick={() => setRejectOpen(true)}>
+          <Button ref={rejectRef} type="button" variant="danger" size="sm" onClick={() => setRejectOpen(true)}>
             Reject
           </Button>
         </div>
@@ -66,20 +68,20 @@ function DecisionForm({ memoId, requiredAction }: { memoId: string; requiredActi
         open={rejectOpen} onClose={() => setRejectOpen(false)}
         memoId={memoId} action="reject" title="Reject this memo"
         description="This ends the workflow. A reason is required."
-        confirmLabel="Reject memo" confirmVariant="danger"
+        confirmLabel="Reject memo" confirmVariant="danger" originRef={rejectRef}
       />
       <ReasonModal
         open={changesOpen} onClose={() => setChangesOpen(false)}
         memoId={memoId} action="request_changes" title="Request changes"
         description="The memo returns to the author for revision. Explain what needs to change."
-        confirmLabel="Request changes" confirmVariant="primary"
+        confirmLabel="Request changes" confirmVariant="primary" originRef={changesRef}
       />
     </>
   )
 }
 
 function ReasonModal({
-  open, onClose, memoId, action, title, description, confirmLabel, confirmVariant,
+  open, onClose, memoId, action, title, description, confirmLabel, confirmVariant, originRef,
 }: {
   open: boolean
   onClose: () => void
@@ -89,6 +91,7 @@ function ReasonModal({
   description: string
   confirmLabel: string
   confirmVariant: 'primary' | 'danger'
+  originRef?: React.RefObject<HTMLElement | null>
 }) {
   const [state, formAction, pending] = useActionState<ActionState, FormData>(
     (prev, fd) => workflowAction(prev, fd).then((r) => { if (r?.ok) onClose(); return r }),
@@ -97,7 +100,7 @@ function ReasonModal({
   const [comment, setComment] = useState('')
 
   return (
-    <Modal open={open} onClose={onClose} title={title}>
+    <Modal open={open} onClose={onClose} title={title} originRef={originRef}>
       <form action={formAction} className="flex flex-col gap-3">
         <input type="hidden" name="memoId" value={memoId} />
         <input type="hidden" name="action" value={action} />

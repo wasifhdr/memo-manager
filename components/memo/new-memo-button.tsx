@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
 import { NewMemoForm } from '@/app/(app)/memos/new/new-memo-form'
@@ -20,13 +20,20 @@ export function NewMemoButton({
   categories: Option[]
 }) {
   const [open, setOpen] = useState(false)
+  const triggerRef = useRef<HTMLButtonElement>(null)
 
   return (
     <>
-      <Button type="button" onClick={() => setOpen(true)}>
+      <Button ref={triggerRef} type="button" onClick={() => setOpen(true)}>
         New memo
       </Button>
-      <Modal open={open} onClose={() => setOpen(false)} title="New memo" size="xl">
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title="New memo"
+        size="xl"
+        originRef={triggerRef}
+      >
         <NewMemoForm departments={departments} categories={categories} bare />
       </Modal>
     </>
