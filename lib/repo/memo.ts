@@ -1,13 +1,40 @@
 import 'server-only'
-import { and, asc, eq } from 'drizzle-orm'
+import { and, asc, desc, eq, exists, inArray, or, sql, type SQL } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/pg-core'
 import { db } from '@/lib/db'
 import {
   memos, memoAttachments, workflowSteps, memoEvents, memoVersions,
   departments, memoCategories, users,
+  type MemoStatus, type Priority,
 } from '@/db/schema'
 import type { TenantContext } from '@/lib/tenant'
-import { getMemoAccess } from '@/lib/authz'
+import { getMemoAccess, activeDelegatorIds } from '@/lib/authz'
+
+export type MemoListFilters = {
+  status?: MemoStatus
+  priority?: Priority
+  categoryId?: string
+  departmentId?: string
+  page?: number
+  pageSize?: number
+}
+
+const DEFAULT_PAGE_SIZE = 25
+
+function paginate(f: MemoListFilters) {
+  const pageSize = f.pageSize && f.pageSize > 0 ? Math.min(f.pageSize, 100) : DEFAULT_PAGE_SIZE
+  const page = f.page && f.page > 0 ? f.page : 1
+  return { pageSize, offset: (page - 1) * pageSize }
+}
+
+function commonFilters(f: MemoListFilters): SQL[] {
+  const clauses: SQL[] = []
+  if (f.status) clauses.push(eq(memos.status, f.status))
+  if (f.priority) clauses.push(eq(memos.priority, f.priority))
+  if (f.categoryId) clauses.push(eq(memos.categoryId, f.categoryId))
+  if (f.departmentId) clauses.push(eq(memos.departmentId, f.departmentId))
+  return clauses
+}
 
 /**
  * A memo the caller authored, scoped to their org. Used by the draft
@@ -128,4 +155,120 @@ export async function getMemoDetail(ctx: TenantContext, memoId: string) {
     .map((cycle) => ({ cycle, steps: steps.filter((s) => s.cycle === cycle) }))
 
   return { memo, cycles, events, versions, attachments, access }
+}
+
+/**
+ * Memos requiring the caller's action right now — the current step of the
+ * current cycle, still pending, assigned to them or an active delegator of
+ * theirs. §6.1.
+ */
+export async function listInbox(ctx: TenantContext, f: MemoListFilters) {
+  const delegators = await activeDelegatorIds(ctx, ctx.user.id)
+  const actsFor = [ctx.user.id, ...delegators]
+  const { pageSize, offset } = paginate(f)
+
+  const author = alias(users, 'inbox_author')
+  const where = and(
+    eq(memos.orgId, ctx.orgId),
+    eq(workflowSteps.memoId, memos.id),
+    eq(workflowSteps.cycle, memos.currentCycle),
+    eq(workflowSteps.stepNo, memos.currentStepNo),
+    eq(workflowSteps.outcome, 'pending'),
+    inArray(workflowSteps.assigneeUserId, actsFor),
+    ...commonFilters(f),
+  )
+
+  const base = () => db.select().from(memos)
+    .innerJoin(workflowSteps, eq(workflowSteps.memoId, memos.id))
+    .innerJoin(author, eq(author.id, memos.authorId))
+    .leftJoin(departments, eq(departments.id, memos.departmentId))
+    .where(where)
+
+  const rows = await base()
+    .orderBy(desc(memos.priority), asc(memos.submittedAt))
+    .limit(pageSize).offset(offset)
+  const [{ count }] = await db.select({ count: sql<number>`count(*)::int` }).from(memos)
+    .innerJoin(workflowSteps, eq(workflowSteps.memoId, memos.id))
+    .where(where)
+
+  return {
+    rows: rows.map((r) => ({
+      id: r.memos.id, memoNumber: r.memos.memoNumber, subject: r.memos.subject,
+      authorName: r.inbox_author.name, departmentName: r.departments?.name ?? null,
+      priority: r.memos.priority, status: r.memos.status, submittedAt: r.memos.submittedAt,
+      requiredAction: r.workflow_steps.requiredAction,
+    })),
+    total: count,
+  }
+}
+
+/** Memos the caller authored. §6.2. */
+export async function listMyMemos(ctx: TenantContext, f: MemoListFilters) {
+  const { pageSize, offset } = paginate(f)
+  const participant = alias(users, 'current_participant')
+
+  const where = and(eq(memos.orgId, ctx.orgId), eq(memos.authorId, ctx.user.id), ...commonFilters(f))
+
+  const rows = await db.select().from(memos)
+    .leftJoin(workflowSteps, and(
+      eq(workflowSteps.memoId, memos.id),
+      eq(workflowSteps.cycle, memos.currentCycle),
+      eq(workflowSteps.stepNo, memos.currentStepNo),
+    ))
+    .leftJoin(participant, eq(participant.id, workflowSteps.assigneeUserId))
+    .where(where)
+    .orderBy(desc(memos.lastActivityAt))
+    .limit(pageSize).offset(offset)
+  const [{ count }] = await db.select({ count: sql<number>`count(*)::int` }).from(memos).where(where)
+
+  return {
+    rows: rows.map((r) => ({
+      id: r.memos.id, memoNumber: r.memos.memoNumber, subject: r.memos.subject,
+      status: r.memos.status, priority: r.memos.priority,
+      currentParticipantName: r.current_participant?.name ?? null,
+      submittedAt: r.memos.submittedAt, lastActivityAt: r.memos.lastActivityAt,
+    })),
+    total: count,
+  }
+}
+
+/** Completed workflows (approved/rejected/cancelled) the caller may see. §6.3. */
+export async function listCompleted(ctx: TenantContext, f: MemoListFilters) {
+  const { pageSize, offset } = paginate(f)
+  const delegators = await activeDelegatorIds(ctx, ctx.user.id)
+  const actsFor = [ctx.user.id, ...delegators]
+  const author = alias(users, 'completed_author')
+
+  const visibility = ctx.user.role === 'org_admin'
+    ? undefined
+    : or(
+        eq(memos.authorId, ctx.user.id),
+        exists(db.select({ one: sql`1` }).from(workflowSteps)
+          .where(and(eq(workflowSteps.memoId, memos.id), inArray(workflowSteps.assigneeUserId, actsFor)))),
+      )
+
+  const where = and(
+    eq(memos.orgId, ctx.orgId),
+    inArray(memos.status, ['approved', 'rejected', 'cancelled']),
+    visibility,
+    ...commonFilters(f),
+  )
+
+  const rows = await db.select().from(memos)
+    .innerJoin(author, eq(author.id, memos.authorId))
+    .leftJoin(departments, eq(departments.id, memos.departmentId))
+    .where(where)
+    .orderBy(desc(memos.completedAt), desc(memos.cancelledAt))
+    .limit(pageSize).offset(offset)
+  const [{ count }] = await db.select({ count: sql<number>`count(*)::int` }).from(memos).where(where)
+
+  return {
+    rows: rows.map((r) => ({
+      id: r.memos.id, memoNumber: r.memos.memoNumber, subject: r.memos.subject,
+      authorName: r.completed_author.name, departmentName: r.departments?.name ?? null,
+      status: r.memos.status, priority: r.memos.priority,
+      completedAt: r.memos.completedAt ?? r.memos.cancelledAt,
+    })),
+    total: count,
+  }
 }
