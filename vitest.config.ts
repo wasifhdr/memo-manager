@@ -8,5 +8,11 @@ export default defineConfig({
     fileParallelism: false,
     testTimeout: 30000,
   },
-  resolve: { alias: { '@': path.resolve(__dirname, '.') } },
+  resolve: {
+    alias: {
+      // See tests/helpers/server-only-stub.ts for why this alias exists.
+      'server-only': path.resolve(__dirname, 'tests/helpers/server-only-stub.ts'),
+      '@': path.resolve(__dirname, '.'),
+    },
+  },
 })
