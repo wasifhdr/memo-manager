@@ -204,6 +204,36 @@ h1, h2, h3, .font-serif-heading {
   font-variant-numeric: tabular-nums;
 }
 
+/* -- The memo body itself: the one place body copy speaks in the document's
+   own voice, not the surrounding sans-serif chrome. -- */
+.prose-memo {
+  font-family: var(--font-serif);
+  line-height: 1.7;
+}
+.prose-memo p { margin: 0 0 0.85em; }
+.prose-memo p:last-child { margin-bottom: 0; }
+.prose-memo h2 { margin: 1.3em 0 0.5em; font-size: 1.25rem; font-weight: 600; }
+.prose-memo h3 { margin: 1.1em 0 0.4em; font-size: 1.0625rem; font-weight: 600; }
+.prose-memo h2:first-child, .prose-memo h3:first-child { margin-top: 0; }
+.prose-memo ul, .prose-memo ol { margin: 0 0 0.85em; padding-left: 1.4em; }
+.prose-memo li { margin: 0.25em 0; }
+.prose-memo li > p { margin: 0; }
+.prose-memo blockquote {
+  margin: 0 0 0.85em;
+  padding: 0.1em 0 0.1em 1em;
+  border-left: 2px solid var(--border-strong);
+  color: var(--text-muted);
+}
+.prose-memo a { text-decoration: underline; text-underline-offset: 2px; }
+.prose-memo hr { border: none; border-top: 1px solid var(--border); margin: 1.3em 0; }
+.prose-memo code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  background: var(--surface-sunken);
+  padding: 0.1em 0.35em;
+  border-radius: 0.25em;
+}
+
 /* -- Browser surfaces: theme what the browser draws by default -- */
 ::selection {
   background: var(--accent-tint);

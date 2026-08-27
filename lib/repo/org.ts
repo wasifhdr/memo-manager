@@ -1,7 +1,7 @@
 import 'server-only'
 import { and, asc, eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
-import { departments, memoCategories, users, organizations, workflowTemplates } from '@/db/schema'
+import { departments, memoCategories, users, organizations, workflowTemplates, workflowTemplateSteps } from '@/db/schema'
 import type { TenantContext } from '@/lib/tenant'
 
 export async function getOrganization(ctx: TenantContext) {
@@ -51,4 +51,27 @@ export async function listTemplates(ctx: TenantContext, opts?: { activeOnly?: bo
       ? and(eq(workflowTemplates.orgId, ctx.orgId), eq(workflowTemplates.active, true))
       : eq(workflowTemplates.orgId, ctx.orgId),
   ).orderBy(asc(workflowTemplates.name))
+}
+
+export async function getTemplateSteps(ctx: TenantContext, templateId: string) {
+  return db.select().from(workflowTemplateSteps)
+    .where(and(eq(workflowTemplateSteps.templateId, templateId), eq(workflowTemplateSteps.orgId, ctx.orgId)))
+    .orderBy(asc(workflowTemplateSteps.stepNo))
+}
+
+/** Active templates with their ordered steps embedded — used by the memo
+ * participant picker to prefill positions without a client round-trip. */
+export async function listTemplatesWithSteps(ctx: TenantContext) {
+  const templates = await listTemplates(ctx, { activeOnly: true })
+  const steps = await db.select().from(workflowTemplateSteps)
+    .where(eq(workflowTemplateSteps.orgId, ctx.orgId))
+    .orderBy(asc(workflowTemplateSteps.stepNo))
+
+  return templates.map((t) => ({
+    id: t.id,
+    name: t.name,
+    steps: steps
+      .filter((s) => s.templateId === t.id)
+      .map((s) => ({ positionTitle: s.positionTitle, requiredAction: s.requiredAction })),
+  }))
 }
