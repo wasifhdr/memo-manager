@@ -179,6 +179,15 @@
     font-size: 15px;
   }
 
+  /* Cells default to baseline alignment, which lines every single-line cell up
+     with the *first* line of a taller neighbour (e.g. a name stacked over an
+     email). Centre them instead; an align-top utility still wins where a row
+     genuinely wants it. */
+  th,
+  td {
+    vertical-align: middle;
+  }
+
   /* Motion is decorative here — never make someone sit through it. */
   @media (prefers-reduced-motion: reduce) {
     *,
