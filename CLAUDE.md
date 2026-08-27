@@ -28,4 +28,5 @@ npm test                      # vitest against TEST_DATABASE_URL
 - No repository function may accept a caller-supplied `orgId`. Every one takes `ctx: TenantContext` (from `lib/tenant.ts`) as its first argument, built only from a verified session.
 - A row in another organization returns **not-found**, never 403.
 - `memo_events` is append-only — no `UPDATE`/`DELETE` against it, ever.
-- Every workflow mutation runs inside `db.transaction` with `SELECT … FOR UPDATE` on the memo row.
+- Every workflow mutation runs inside `db.transaction` with row locking via the query builder's `.for('update')` — **not** a raw `tx.execute(sql\`...FOR UPDATE\`)`, which intermittently failed to see rows committed just before the transaction opened (see the Task 7 commit). The same applies to `nextMemoNumber`'s upsert: `onConflictDoUpdate()`, not raw SQL, inside a transaction.
+- `lib/*.ts` do not import `server-only` — it throws unconditionally outside Next's own bundler (breaks Vitest and `db/seed.ts`), and nothing here is ever imported from a `'use client'` file anyway.
