@@ -177,8 +177,8 @@ export function Select({
             aria-activedescendant={`${listId}-${activeIdx}`}
             onKeyDown={onListKeyDown}
             className={
-              "animate-pop-in absolute left-0 top-full z-50 mt-1.5 max-h-64 w-full min-w-max overflow-y-auto " +
-              "rounded-[var(--radius-card)] border-2 border-(--color-ink) bg-(--color-paper) p-1.5 shadow-offset-lg"
+              "animate-pop-in no-scrollbar absolute left-0 top-full z-50 mt-1.5 max-h-64 w-full min-w-max overflow-y-auto " +
+              "overscroll-contain rounded-[var(--radius-card)] border-2 border-(--color-ink) bg-(--color-paper) p-1.5 shadow-offset-lg"
             }
           >
             {rows.map((row, idx) => {

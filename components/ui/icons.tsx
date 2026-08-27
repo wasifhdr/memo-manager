@@ -237,3 +237,11 @@ export function IconChart(props: SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+export function IconChevronLeft(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M10 4l-4 4 4 4" />
+    </svg>
+  );
+}
