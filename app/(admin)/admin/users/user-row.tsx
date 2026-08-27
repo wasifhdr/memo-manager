@@ -45,15 +45,17 @@ export function UserRow({
         <td className="px-4 py-3" colSpan={7}>
           <form action={updAction} className="flex flex-wrap items-end gap-2">
             <input type="hidden" name="id" value={user.id} />
-            <Input name="name" defaultValue={user.name} required className="max-w-[12rem]" />
-            <Input name="designation" defaultValue={user.designation ?? ''} placeholder="Designation" className="max-w-[12rem]" />
+            <Input name="name" defaultValue={user.name} required className="max-w-[12rem] shrink-0" />
+            <Input name="designation" defaultValue={user.designation ?? ''} placeholder="Designation" className="min-w-[10rem] flex-1" />
             <Select name="departmentId" defaultValue={user.departmentId ?? ''} placeholder="No department" options={departments} className="max-w-[12rem]" />
             <Select
               name="role" defaultValue={user.role} className="max-w-[10rem]"
               options={[{ value: 'user', label: 'Member' }, { value: 'org_admin', label: 'Admin' }]}
             />
-            <Button type="submit" size="sm" disabled={updPending}>{updPending ? 'Saving…' : 'Save'}</Button>
-            <Button type="button" size="sm" variant="ghost" onClick={() => setEditing(false)}>Cancel</Button>
+            <div className="ml-auto flex shrink-0 items-center gap-2">
+              <Button type="submit" size="sm" disabled={updPending}>{updPending ? 'Saving…' : 'Save'}</Button>
+              <Button type="button" size="sm" variant="ghost" onClick={() => setEditing(false)}>Cancel</Button>
+            </div>
           </form>
           {updState && 'error' in updState && updState.error ? (
             <p className="mt-1.5 text-[0.8125rem] text-(--color-red-deep)">{updState.error}</p>
@@ -64,7 +66,7 @@ export function UserRow({
   }
 
   return (
-    <tr className="border-b border-(--color-sand) last:border-b-0 align-top">
+    <tr className="border-b border-(--color-sand) last:border-b-0">
       <td className="px-4 py-3">
         <div className="font-medium text-(--color-ink)">{user.name}</div>
         <div className="text-[0.8125rem] text-(--color-ink)/50">{user.email}</div>
