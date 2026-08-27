@@ -1,21 +1,11 @@
 import { NextResponse } from 'next/server'
 import { and, eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
-import { memoAttachments, memos } from '@/db/schema'
+import { memoAttachments } from '@/db/schema'
 import { getSession } from '@/lib/tenant'
+import { getMemoAccess } from '@/lib/authz'
 
 export const runtime = 'nodejs'
-
-// NOTE: upgraded in Task 7 to call lib/authz.ts's getMemoAccess once it
-// exists, so a workflow participant (not just the author/an admin) can
-// download too. Until then this is a strict subset of that eventual check,
-// never a broader one.
-async function canView(orgId: string, userId: string, role: string, memoId: string): Promise<boolean> {
-  const [memo] = await db.select({ authorId: memos.authorId }).from(memos)
-    .where(and(eq(memos.id, memoId), eq(memos.orgId, orgId)))
-  if (!memo) return false
-  return memo.authorId === userId || role === 'org_admin'
-}
 
 export async function GET(
   _req: Request,
@@ -30,8 +20,8 @@ export async function GET(
     .limit(1)
   if (!att) return new NextResponse('Not found', { status: 404 })
 
-  const allowed = await canView(ctx.orgId, ctx.user.id, ctx.user.role, att.memoId)
-  if (!allowed) return new NextResponse('Not found', { status: 404 })
+  const access = await getMemoAccess(ctx, att.memoId)
+  if (!access?.canView) return new NextResponse('Not found', { status: 404 })
 
   return new NextResponse(new Uint8Array(att.data), {
     headers: {
