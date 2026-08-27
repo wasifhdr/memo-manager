@@ -10,8 +10,6 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      // See tests/helpers/server-only-stub.ts for why this alias exists.
-      'server-only': path.resolve(__dirname, 'tests/helpers/server-only-stub.ts'),
       '@': path.resolve(__dirname, '.'),
     },
   },

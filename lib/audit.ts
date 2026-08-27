@@ -1,4 +1,3 @@
-import 'server-only'
 import { db, type Executor } from '@/lib/db'
 import { auditLog } from '@/db/schema'
 

@@ -1,4 +1,3 @@
-import 'server-only'
 import { sql } from 'drizzle-orm'
 import type { Executor } from '@/lib/db'
 import { memoCounters } from '@/db/schema'

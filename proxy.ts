@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 
 const PUBLIC = ['/login', '/register-organization', '/forgot-password', '/reset-password']
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl
   const isPublic = PUBLIC.some((p) => pathname === p || pathname.startsWith(p + '/'))
   const hasCookie = req.cookies.has('memo_session')

@@ -1,4 +1,3 @@
-import 'server-only'
 import { and, count, desc, eq, isNull } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { notifications } from '@/db/schema'

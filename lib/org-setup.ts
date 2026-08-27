@@ -1,4 +1,3 @@
-import 'server-only'
 import { db } from '@/lib/db'
 import { organizations, users, departments, memoCategories, workflowTemplates, workflowTemplateSteps } from '@/db/schema'
 import { hashPassword } from '@/lib/auth'

@@ -1,4 +1,3 @@
-import 'server-only'
 import { createHash, randomBytes } from 'node:crypto'
 import bcrypt from 'bcryptjs'
 import { and, eq, gt, isNull, lt } from 'drizzle-orm'

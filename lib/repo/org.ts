@@ -1,4 +1,3 @@
-import 'server-only'
 import { and, asc, eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { departments, memoCategories, users, organizations, workflowTemplates, workflowTemplateSteps } from '@/db/schema'

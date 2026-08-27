@@ -1,4 +1,3 @@
-import 'server-only'
 import { and, count, eq, gte, lte, sql } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { memos, departments, memoCategories, type MemoStatus } from '@/db/schema'

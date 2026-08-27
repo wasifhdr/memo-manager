@@ -9,7 +9,9 @@ const connectionString = process.env.DATABASE_URL
 if (!connectionString) throw new Error('DATABASE_URL is not set')
 
 // `prepare: false` is required behind Neon's pooler (PgBouncer transaction mode).
-const client = postgres(connectionString, { prepare: false, max: 5 })
+// `onnotice` is a no-op so routine NOTICE-level chatter (e.g. TRUNCATE CASCADE
+// during seeding/tests) doesn't spam stdout — it's never actionable.
+const client = postgres(connectionString, { prepare: false, max: 5, onnotice: () => {} })
 
 export const db = drizzle(client, { schema })
 

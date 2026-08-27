@@ -1,4 +1,3 @@
-import 'server-only'
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from 'pdf-lib'
 import { htmlToText } from '@/lib/sanitize'
 import type { MemoDetail } from '@/lib/repo/memo'

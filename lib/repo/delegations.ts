@@ -1,4 +1,3 @@
-import 'server-only'
 import { and, desc, eq } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/pg-core'
 import { db } from '@/lib/db'
