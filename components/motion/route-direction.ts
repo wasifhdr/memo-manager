@@ -26,15 +26,22 @@ export function directionFor(from: string, to: string): Direction {
 
 // Module-scoped rather than React state: the value has to survive the unmount
 // of the whole shell when navigating between the (app) and (admin) layouts.
-let pending: Direction = 1;
+let pending: { to: string; dir: Direction } | null = null;
 
-export function setDirection(d: Direction) {
-  pending = d;
+/** Records the direction for the navigation about to happen. */
+export function setDirection(to: string, dir: Direction) {
+  pending = { to, dir };
 }
 
-/** Reads the direction for the incoming page and resets to the default. */
-export function consumeDirection(): Direction {
-  const d = pending;
-  pending = 1;
-  return d;
+/**
+ * Direction for the page now entering.
+ *
+ * Deliberately idempotent — it reads the record instead of consuming it.
+ * React invokes effects twice under Strict Mode (Next enables it in dev), and
+ * a consume-once value handed the second invocation the default of +1, so
+ * upward navigations animated downward: the new page entered from below and
+ * travelled up into place instead of down.
+ */
+export function directionOnEnter(pathname: string): Direction {
+  return pending && pending.to === pathname ? pending.dir : 1;
 }

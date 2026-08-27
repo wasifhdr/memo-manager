@@ -84,7 +84,7 @@ export function AppShell({
     if (href === pathname) return;
 
     const dir = directionFor(pathname, href);
-    setDirection(dir);
+    setDirection(href, dir);
 
     const root = document.getElementById(PAGE_ROOT_ID);
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;

@@ -4,7 +4,7 @@ import { useRef } from "react";
 import { usePathname } from "next/navigation";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-import { consumeDirection } from "@/components/motion/route-direction";
+import { directionOnEnter } from "@/components/motion/route-direction";
 
 gsap.registerPlugin(useGSAP);
 
@@ -27,31 +27,32 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
       const el = ref.current;
       if (!el) return;
 
-      const mm = gsap.matchMedia();
-      mm.add(
+      // A plain query rather than gsap.matchMedia(): matchMedia creates its own
+      // context, and nesting one inside useGSAP's context gave two revert paths
+      // for the same tween, which flashed the from-state on re-invocation.
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        gsap.set(el, { autoAlpha: 1, y: 0 });
+        return;
+      }
+
+      const dir = directionOnEnter(pathname);
+
+      gsap.fromTo(
+        el,
+        { autoAlpha: 0, y: 22 * dir },
         {
-          motionOk: "(prefers-reduced-motion: no-preference)",
-          reduceMotion: "(prefers-reduced-motion: reduce)",
-        },
-        (ctx) => {
-          const { reduceMotion } = ctx.conditions as { reduceMotion: boolean };
-          const dir = consumeDirection();
-
-          if (reduceMotion) {
-            gsap.set(el, { autoAlpha: 1, y: 0 });
-            return;
-          }
-
-          gsap.fromTo(
-            el,
-            { autoAlpha: 0, y: 22 * dir },
-            { autoAlpha: 1, y: 0, duration: 0.34, ease: "power2.out", clearProps: "transform" },
-          );
+          autoAlpha: 1,
+          y: 0,
+          duration: 0.34,
+          ease: "power2.out",
+          overwrite: true,
+          // drop the transform so the element can't act as a containing block
+          // for anything positioned inside it
+          clearProps: "transform",
         },
       );
-      return () => mm.revert();
     },
-    { dependencies: [pathname], revertOnUpdate: true },
+    { dependencies: [pathname] },
   );
 
   return (

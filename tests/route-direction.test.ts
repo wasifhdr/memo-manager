@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { directionFor, setDirection, consumeDirection } from '@/components/motion/route-direction'
+import { directionFor, setDirection, directionOnEnter } from '@/components/motion/route-direction'
 
 /**
  * Sidebar order is: dashboard, inbox, memos, completed, search, notifications,
@@ -44,10 +44,34 @@ describe('directionFor', () => {
 })
 
 describe('direction hand-off', () => {
-  it('consume returns what was set, then resets to the default', () => {
-    setDirection(-1)
-    expect(consumeDirection()).toBe(-1)
-    // a direct URL load has no preceding click, so it should fall back to +1
-    expect(consumeDirection()).toBe(1)
+  it('returns the direction recorded for the entering path', () => {
+    setDirection('/dashboard', -1)
+    expect(directionOnEnter('/dashboard')).toBe(-1)
+  })
+
+  it('is idempotent across repeated reads', () => {
+    // Regression: React invokes effects twice under Strict Mode. The previous
+    // consume-once API handed the second invocation the default of +1, so
+    // upward navigations animated downward — the new page entered from below
+    // and travelled up into place, which read as a jump at the end.
+    setDirection('/inbox', -1)
+    expect(directionOnEnter('/inbox')).toBe(-1)
+    expect(directionOnEnter('/inbox')).toBe(-1)
+    expect(directionOnEnter('/inbox')).toBe(-1)
+  })
+
+  it('falls back to +1 for a path it was not recorded against', () => {
+    setDirection('/inbox', -1)
+    // a direct URL load, or a stale record from an earlier navigation
+    expect(directionOnEnter('/search')).toBe(1)
+  })
+
+  it('round-trips a real upward navigation', () => {
+    const from = '/search'
+    const to = '/dashboard'
+    const dir = directionFor(from, to)
+    expect(dir).toBe(-1)
+    setDirection(to, dir)
+    expect(directionOnEnter(to)).toBe(-1)
   })
 })
