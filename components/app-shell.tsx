@@ -37,6 +37,11 @@ export function AppShell({
   const isAdminRoute = pathname.startsWith("/admin");
 
   const [drawerOpen, setDrawerOpen] = useState(false);
+  // Kept mounted while the close animation plays; drawerOpen is the intent,
+  // drawerMounted is the presence in the DOM.
+  const [drawerMounted, setDrawerMounted] = useState(false);
+  const drawerPanelRef = useRef<HTMLDivElement>(null);
+  const drawerBackdropRef = useRef<HTMLDivElement>(null);
   const [adminOpen, setAdminOpen] = useState(isAdminRoute);
   // Server always renders expanded; the stored preference is applied after
   // mount so the markup can't mismatch during hydration.
@@ -67,11 +72,49 @@ export function AppShell({
   useEffect(() => { setDrawerOpen(false); }, [pathname]);
 
   useEffect(() => {
-    if (!drawerOpen) return;
+    if (drawerOpen) setDrawerMounted(true);
+  }, [drawerOpen]);
+
+  useGSAP(
+    () => {
+      if (!drawerMounted) return;
+      const panel = drawerPanelRef.current;
+      const backdrop = drawerBackdropRef.current;
+      if (!panel || !backdrop) return;
+
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      if (drawerOpen) {
+        if (reduce) {
+          gsap.set([panel, backdrop], { clearProps: "all" });
+          return;
+        }
+        gsap.fromTo(backdrop, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.2, ease: "power1.out" });
+        gsap.fromTo(panel, { xPercent: -100 }, { xPercent: 0, duration: 0.34, ease: "power3.out" });
+        return;
+      }
+
+      // closing: play it out, then drop it from the DOM
+      if (reduce) {
+        setDrawerMounted(false);
+        return;
+      }
+      gsap
+        .timeline({ onComplete: () => setDrawerMounted(false) })
+        .to(panel, { xPercent: -100, duration: 0.24, ease: "power2.in" }, 0)
+        .to(backdrop, { autoAlpha: 0, duration: 0.24, ease: "power1.in" }, 0);
+    },
+    { dependencies: [drawerOpen, drawerMounted], scope: shellRef },
+  );
+
+  // Keyed to mounted, not open: the lock has to outlast the close animation,
+  // otherwise the page can scroll behind a drawer that is still on screen.
+  useEffect(() => {
+    if (!drawerMounted) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = prev; };
-  }, [drawerOpen]);
+  }, [drawerMounted]);
 
   // useGSAP gives us contextSafe so the exit tween is registered in a context
   // and reverted if the shell unmounts mid-flight.
@@ -331,10 +374,17 @@ export function AppShell({
         {sidebarBody(collapsed)}
       </aside>
 
-      {drawerOpen ? (
+      {drawerMounted ? (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="absolute inset-0 bg-(--color-ink)/50 backdrop-blur-[2px]" onClick={() => setDrawerOpen(false)} />
-          <div className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col bg-(--color-ink) text-(--color-paper)">
+          <div
+            ref={drawerBackdropRef}
+            className="absolute inset-0 bg-(--color-ink)/50 backdrop-blur-[2px]"
+            onClick={() => setDrawerOpen(false)}
+          />
+          <div
+            ref={drawerPanelRef}
+            className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col bg-(--color-ink) text-(--color-paper)"
+          >
             <button
               type="button"
               onClick={() => setDrawerOpen(false)}

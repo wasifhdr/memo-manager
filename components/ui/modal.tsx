@@ -108,7 +108,7 @@ export function Modal({
       onClick={(e) => { if (e.target === ref.current) onClose(); }}
       // `open:flex` (not plain `flex`) — a bare display:flex would beat the UA's
       // `dialog:not([open]){display:none}` and leave the dialog visible when closed.
-      className={`m-auto max-h-[88vh] w-full ${SIZES[size]} flex-col overflow-hidden rounded-[var(--radius-card-lg)] border-2 border-(--color-ink) bg-(--color-paper) p-0 text-(--color-ink) shadow-offset-lg open:flex backdrop:bg-(--color-ink)/50 backdrop:backdrop-blur-[2px]`}
+      className={`m-auto max-h-[88vh] w-[calc(100%-1.5rem)] ${SIZES[size]} flex-col overflow-hidden rounded-[var(--radius-card-lg)] border-2 border-(--color-ink) bg-(--color-paper) p-0 text-(--color-ink) shadow-offset-lg open:flex backdrop:bg-(--color-ink)/50 backdrop:backdrop-blur-[2px]`}
     >
       <div className="flex shrink-0 items-center justify-between border-b border-(--color-sand) px-5 py-4">
         <h2 className="text-h3">{title}</h2>

@@ -60,8 +60,10 @@ export function StatTile({
   const valueClass = t.semantic && value > 0 ? t.value : 'text-(--color-ink)'
 
   return (
-    <div className="rounded-[var(--radius-card)] border-2 border-(--color-ink) bg-(--color-paper) px-4 py-3.5 shadow-offset">
-      <div className="flex items-center justify-between gap-3">
+    // grid items stretch to the tallest card, so the contents are centred
+    // rather than sitting at the top of whatever height the row settles on
+    <div className="flex items-center rounded-[var(--radius-card)] border-2 border-(--color-ink) bg-(--color-paper) px-4 py-3.5 shadow-offset">
+      <div className="flex w-full items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="text-label uppercase text-(--color-ink)/70">{label}</p>
           <p className={`mt-1.5 font-mono-nums text-3xl font-bold leading-none ${valueClass}`}>{value}</p>
