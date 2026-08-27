@@ -13,6 +13,7 @@ type ShellUser = {
 
 export function AppShell({
   orgName,
+  hasLogo = false,
   userName,
   userRole,
   unreadCount = 0,
@@ -20,6 +21,7 @@ export function AppShell({
   children,
 }: {
   orgName: string;
+  hasLogo?: boolean;
   userName: ShellUser["name"];
   userRole: ShellUser["role"];
   unreadCount?: number;
@@ -88,9 +90,14 @@ export function AppShell({
       {/* Desktop sidebar */}
       <aside className="hidden w-60 shrink-0 flex-col border-r border-(--border) bg-(--surface) md:flex">
         <div className="flex items-center gap-2.5 border-b border-(--border) px-4 py-4">
-          <span className="flex size-8 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-(--accent) font-serif-heading text-[0.9375rem] font-semibold text-(--text-on-accent)">
-            {orgInitial}
-          </span>
+          {hasLogo ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src="/api/org-logo" alt="" className="size-8 shrink-0 rounded-[var(--radius-sm)] object-contain" />
+          ) : (
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-(--accent) font-serif-heading text-[0.9375rem] font-semibold text-(--text-on-accent)">
+              {orgInitial}
+            </span>
+          )}
           <span className="truncate text-[0.9375rem] font-semibold text-(--text)">{orgName}</span>
         </div>
         <div className="flex-1 overflow-y-auto py-3">
