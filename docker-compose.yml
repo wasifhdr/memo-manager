@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: memo-postgres
+    environment:
+      POSTGRES_USER: memo
+      POSTGRES_PASSWORD: memo
+      POSTGRES_DB: memo
+    ports:
+      - "5433:5432"
+    volumes:
+      - memo-pgdata:/var/lib/postgresql/data
+volumes:
+  memo-pgdata:
