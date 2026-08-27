@@ -1,6 +1,9 @@
 import { NextResponse, type NextRequest } from 'next/server'
 
-const PUBLIC = ['/login', '/register-organization', '/forgot-password', '/reset-password']
+// TODO(Task 4): once login exists, replace app/page.tsx with a session-aware
+// redirect and drop '/' from this list — it is public only for the Task 3
+// design-system showcase, which has no session to check yet.
+const PUBLIC = ['/', '/login', '/register-organization', '/forgot-password', '/reset-password']
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
