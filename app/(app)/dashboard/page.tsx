@@ -14,13 +14,15 @@ export const metadata: Metadata = { title: 'Dashboard' }
 
 export default async function DashboardPage() {
   const ctx = await requireSession()
-  const [departments, categories] = await Promise.all([
+  // One batch, not two: the option lists feed the New memo modal and do not
+  // depend on the dashboard figures.
+  const [departments, categories, d] = await Promise.all([
     listDepartments(ctx, { activeOnly: true }),
     listCategories(ctx, { activeOnly: true }),
+    userDashboard(ctx),
   ])
-  const departmentOptions = departments.map((d) => ({ value: d.id, label: d.name }))
+  const departmentOptions = departments.map((dep) => ({ value: dep.id, label: dep.name }))
   const categoryOptions = categories.map((c) => ({ value: c.id, label: c.name }))
-  const d = await userDashboard(ctx)
 
   return (
     <div>

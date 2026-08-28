@@ -2,7 +2,7 @@
 
 ## A. Deployed Application
 
-**URL:** _[fill in after deploying — see "Deploying" below]_
+**URL:** https://memo-manager.vercel.app/
 
 ## B. Project Documentation
 
@@ -121,7 +121,9 @@ scratch.
 
 ## Deploying
 
-Not deployed by this session — it requires your own GitHub and Vercel
-accounts. See `README.md` §10 for the exact steps (push to GitHub → create a
-Neon project, migrate and seed it → import into Vercel with `DATABASE_URL`
-set). Once live, fill in the Deployed URL above.
+Live at the URL above: Vercel (application) + Neon (Postgres), with
+`DATABASE_URL` set to Neon's pooled connection string as the only environment
+variable. `README.md` §10 documents the steps to reproduce it from scratch.
+
+Migrations are not run by the build; `npm run db:migrate` is run against Neon
+directly whenever the schema changes.

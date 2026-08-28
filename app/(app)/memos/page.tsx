@@ -30,16 +30,18 @@ export default async function MyMemosPage({
   searchParams: Promise<{ status?: string }>
 }) {
   const ctx = await requireSession()
-  const [departments, categories] = await Promise.all([
-    listDepartments(ctx, { activeOnly: true }),
-    listCategories(ctx, { activeOnly: true }),
-  ])
-  const departmentOptions = departments.map((d) => ({ value: d.id, label: d.name }))
-  const categoryOptions = categories.map((c) => ({ value: c.id, label: c.name }))
   const { status } = await searchParams
   const statusFilter = STATUS_OPTIONS.some((o) => o.value === status) ? (status as MemoStatus) : undefined
 
-  const { rows, total } = await listMyMemos(ctx, { status: statusFilter, pageSize: 50 })
+  // One batch: the option lists feed the New memo modal and are unrelated to
+  // the list itself.
+  const [departments, categories, { rows, total }] = await Promise.all([
+    listDepartments(ctx, { activeOnly: true }),
+    listCategories(ctx, { activeOnly: true }),
+    listMyMemos(ctx, { status: statusFilter, pageSize: 50 }),
+  ])
+  const departmentOptions = departments.map((d) => ({ value: d.id, label: d.name }))
+  const categoryOptions = categories.map((c) => ({ value: c.id, label: c.name }))
 
   return (
     <div>
