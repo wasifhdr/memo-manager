@@ -10,6 +10,7 @@ import { requireAdmin } from '@/lib/tenant'
 import { hashPassword, revokeUserSessions, createPasswordResetToken } from '@/lib/auth'
 import { audit } from '@/lib/audit'
 import type { ActionState } from '@/app/(auth)/actions'
+import { parseBulkUsers } from './bulk-parse'
 
 export type CreateUserState =
   | { error: string }
@@ -150,4 +151,72 @@ export async function generateResetLink(_prev: ResetLinkState, formData: FormDat
     entityType: 'user', entityId: user.id, description: `Reset link generated for ${user.email}`,
   })
   return { ok: true, url: `/reset-password/${raw}` }
+}
+
+export type BulkCreatedUser = { name: string; email: string; temporaryPassword: string }
+export type BulkFailedRow = { line: number; email: string; message: string }
+export type BulkCreateState =
+  | { error: string }
+  | { ok: true; created: BulkCreatedUser[]; failed: BulkFailedRow[] }
+  | undefined
+
+/**
+ * Creates many users from pasted CSV. Rows are applied individually rather than
+ * in one transaction: a single duplicate email should not discard the rest of
+ * the batch, so every row reports its own outcome.
+ */
+export async function createUsersBulk(_prev: BulkCreateState, formData: FormData): Promise<BulkCreateState> {
+  const ctx = await requireAdmin()
+  const csv = formData.get('csv')
+  if (typeof csv !== 'string' || !csv.trim()) return { error: 'Paste at least one row first.' }
+
+  const { rows, errors } = parseBulkUsers(csv)
+  if (rows.length === 0) {
+    return { error: errors[0]?.message ?? 'Nothing to add — check the format and try again.' }
+  }
+
+  // Departments are given by name; resolve them once, scoped to this org.
+  const orgDepartments = await db
+    .select({ id: departments.id, name: departments.name })
+    .from(departments)
+    .where(eq(departments.orgId, ctx.orgId))
+  const byName = new Map(orgDepartments.map((d) => [d.name.trim().toLowerCase(), d.id]))
+
+  const created: BulkCreatedUser[] = []
+  const failed: BulkFailedRow[] = errors.map((e) => ({ line: e.line, email: '', message: e.message }))
+
+  for (const row of rows) {
+    let departmentId: string | null = null
+    if (row.department) {
+      const match = byName.get(row.department.toLowerCase())
+      if (!match) {
+        failed.push({ line: row.line, email: row.email, message: `No department named "${row.department}".` })
+        continue
+      }
+      departmentId = match
+    }
+
+    const temporaryPassword = generatePassword()
+    const passwordHash = await hashPassword(temporaryPassword)
+
+    try {
+      const [user] = await db.insert(users).values({
+        orgId: ctx.orgId, name: row.name, email: row.email,
+        designation: row.designation || null, departmentId,
+        role: row.role, passwordHash,
+      }).returning()
+
+      await audit(undefined, {
+        orgId: ctx.orgId, actorId: ctx.user.id, eventType: 'user_created',
+        entityType: 'user', entityId: user.id,
+        description: `User ${user.email} created (bulk import)`,
+      })
+      created.push({ name: user.name, email: user.email, temporaryPassword })
+    } catch {
+      failed.push({ line: row.line, email: row.email, message: 'A user with that email already exists.' })
+    }
+  }
+
+  revalidatePath('/admin/users')
+  return { ok: true, created, failed: failed.sort((a, b) => a.line - b.line) }
 }

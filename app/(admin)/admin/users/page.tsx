@@ -4,6 +4,7 @@ import { listUsers, listDepartments } from '@/lib/repo/org'
 import { PageHeader } from '@/components/ui/page-header'
 import { EmptyState } from '@/components/ui/empty-state'
 import { NewUserButton } from './new-user-button'
+import { BulkAddUsersButton } from './bulk-add-users'
 import { UserRow } from './user-row'
 
 export const metadata: Metadata = { title: 'Users' }
@@ -29,7 +30,12 @@ export default async function UsersPage() {
       <PageHeader
         title="Users"
         description="Invite users, assign departments and roles, and activate or deactivate accounts."
-        actions={<NewUserButton departments={departmentOptions} />}
+        actions={
+          <>
+            <BulkAddUsersButton />
+            <NewUserButton departments={departmentOptions} />
+          </>
+        }
       />
 
       {userRows.length === 0 ? (
