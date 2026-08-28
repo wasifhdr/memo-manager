@@ -127,8 +127,8 @@ export async function getMemoDetail(ctx: TenantContext, memoId: string) {
 
   const actor = alias(users, 'actor')
   const eventOnBehalfOf = alias(users, 'event_on_behalf_of')
-  const events = await db.select({
-    id: memoEvents.id, type: memoEvents.type,
+  const allEvents = await db.select({
+    id: memoEvents.id, type: memoEvents.type, actorId: memoEvents.actorId,
     actorName: actor.name, onBehalfOfName: eventOnBehalfOf.name,
     cycle: memoEvents.cycle, stepNo: memoEvents.stepNo,
     comment: memoEvents.comment, detail: memoEvents.detail, createdAt: memoEvents.createdAt,
@@ -147,13 +147,18 @@ export async function getMemoDetail(ctx: TenantContext, memoId: string) {
     .where(and(eq(memoVersions.memoId, memoId), eq(memoVersions.orgId, ctx.orgId)))
     .orderBy(asc(memoVersions.versionNo))
 
+  // Thread comments are a conversation, not workflow history: they render in
+  // the chat thread and are kept out of the activity timeline.
+  const events = allEvents.filter((e) => e.type !== 'comment')
+  const thread = allEvents.filter((e) => e.type === 'comment')
+
   const attachments = await listAttachmentsWithUploader(ctx, memoId)
 
   // Group steps by cycle for the workflow rail; the highest cycle is current.
   const cycles = Array.from(new Set(steps.map((s) => s.cycle))).sort((a, b) => a - b)
     .map((cycle) => ({ cycle, steps: steps.filter((s) => s.cycle === cycle) }))
 
-  return { memo, cycles, events, versions, attachments, access }
+  return { memo, cycles, events, thread, versions, attachments, access }
 }
 
 /**

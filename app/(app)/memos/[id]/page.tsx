@@ -9,6 +9,7 @@ import { WorkflowRail } from '@/components/memo/workflow-rail'
 import { Timeline } from '@/components/memo/timeline'
 import { ActionPanel } from '@/components/memo/action-panel'
 import { AttachmentList } from '@/components/memo/attachment-list'
+import { CommentThread } from '@/components/memo/comment-thread'
 import { LinkButton } from '@/components/ui/button'
 import { SubmitControl, ResubmitControl, CancelControl } from './memo-controls'
 
@@ -33,7 +34,7 @@ export default async function MemoDetailPage({
   const detail = await getMemoDetail(ctx, id)
   if (!detail) notFound()
 
-  const { memo, cycles, events, attachments, access } = detail
+  const { memo, cycles, events, thread, attachments, access } = detail
   const isAuthor = memo.authorId === ctx.user.id
 
   const actingForName = access.actingForUserId
@@ -86,7 +87,7 @@ export default async function MemoDetailPage({
           </CardHeader>
           <CardBody className="flex flex-col gap-3">
             <p className="text-[0.8125rem] text-(--color-ink)/70">
-              <a href={`/memos/${memo.id}/edit`} className="text-(--color-orange-deep) hover:underline">Revise the memo</a>, then resubmit it into the workflow.
+              <a href={`/memos/${memo.id}/edit`} className="text-(--color-orange-deep) hover:underline">Revise the memo</a>, then resubmit it. It goes back to the participant who requested the changes.
             </p>
             <ResubmitControl memoId={memo.id} />
           </CardBody>
@@ -123,9 +124,23 @@ export default async function MemoDetailPage({
 
           <Card>
             <CardHeader>
-              <h2 className="text-sm font-semibold">Activity</h2>
+              <h2 className="text-sm font-semibold">Thread</h2>
             </CardHeader>
             <CardBody>
+              <CommentThread
+                memoId={memo.id}
+                currentUserId={ctx.user.id}
+                messages={thread}
+                canComment={access.canComment}
+              />
+            </CardBody>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <h2 className="text-sm font-semibold">Activity</h2>
+            </CardHeader>
+            <CardBody className="max-h-[26rem] overflow-y-auto">
               <Timeline events={events} />
             </CardBody>
           </Card>
@@ -135,7 +150,6 @@ export default async function MemoDetailPage({
           <ActionPanel
             memoId={memo.id}
             canAct={access.canAct}
-            canComment={access.canComment}
             actingForName={actingForName}
           />
           {access.canCancel ? (

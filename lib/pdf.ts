@@ -107,7 +107,7 @@ class Writer {
 export async function buildMemoPdf(detail: NonNullable<MemoDetail>, org: OrgInfo): Promise<Uint8Array> {
   const w = new Writer()
   await w.init()
-  const { memo, cycles, events, attachments } = detail
+  const { memo, cycles, events, thread, attachments } = detail
 
   // Header
   w.text(org.name, { size: 16, font: w.bold, gap: 2 })
@@ -154,11 +154,15 @@ export async function buildMemoPdf(detail: NonNullable<MemoDetail>, org: OrgInfo
     }
   }
 
+  // The export keeps the full record: workflow history and thread comments,
+  // which the screen separates, are one chronological list here.
+  const history = [...events, ...thread]
+    .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
   w.heading('Approval history & comments')
-  if (events.length === 0) {
+  if (history.length === 0) {
     w.text('No recorded activity.', { size: 9.5, color: FAINT })
   }
-  for (const e of events) {
+  for (const e of history) {
     const who = e.onBehalfOfName ? `${e.actorName ?? 'System'} (on behalf of ${e.onBehalfOfName})` : (e.actorName ?? 'System')
     w.text(`${fmt(e.createdAt)} — ${who}: ${e.type.replace(/_/g, ' ')}${e.detail ? ` — ${e.detail}` : ''}`, {
       size: 9, font: w.bold, gap: 1,

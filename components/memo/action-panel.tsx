@@ -8,14 +8,13 @@ import { Textarea, FieldError } from '@/components/ui/field'
 import { requiresReason } from '@/lib/decision-rules'
 
 export function ActionPanel({
-  memoId, canAct, actingForName, canComment,
+  memoId, canAct, actingForName,
 }: {
   memoId: string
   canAct: boolean
   actingForName: string | null
-  canComment: boolean
 }) {
-  if (!canAct && !canComment) return null
+  if (!canAct) return null
 
   return (
     <div className="flex flex-col gap-4">
@@ -27,8 +26,6 @@ export function ActionPanel({
           <DecisionForm memoId={memoId} />
         </div>
       ) : null}
-
-      {canComment ? <CommentForm memoId={memoId} /> : null}
     </div>
   )
 }
@@ -90,32 +87,6 @@ function DecisionForm({ memoId }: { memoId: string }) {
       ) : null}
 
       <FieldError>{state && 'error' in state ? state.error : undefined}</FieldError>
-    </form>
-  )
-}
-
-function CommentForm({ memoId }: { memoId: string }) {
-  const [state, formAction, pending] = useActionState<ActionState, FormData>(
-    (prev, fd) => workflowAction(prev, fd).then((r) => { if (r?.ok) setText(''); return r }),
-    undefined,
-  )
-  const [text, setText] = useState('')
-
-  return (
-    <form action={formAction} className="rounded-[var(--radius-card)] border border-(--color-sand) bg-(--color-paper) p-4">
-      <p className="mb-2 text-[0.8125rem] font-bold text-(--color-ink)">Add a comment</p>
-      <input type="hidden" name="memoId" value={memoId} />
-      <input type="hidden" name="action" value="comment" />
-      <Textarea
-        name="comment" rows={2} placeholder="Share a note on this memo…"
-        value={text} onChange={(e) => setText(e.target.value)}
-      />
-      <FieldError>{state && 'error' in state ? state.error : undefined}</FieldError>
-      <div className="mt-2">
-        <Button type="submit" size="sm" variant="secondary" disabled={pending || !text.trim()}>
-          {pending ? 'Posting…' : 'Post comment'}
-        </Button>
-      </div>
     </form>
   )
 }
