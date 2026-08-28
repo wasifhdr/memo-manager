@@ -105,7 +105,7 @@ export default async function DashboardPage() {
           <CardHeader>
             <h2 className="text-sm font-semibold">Recent activity</h2>
           </CardHeader>
-          <CardBody>
+          <CardBody className="max-h-80 overflow-y-auto">
             <RecentActivity items={d.recentActivity} />
           </CardBody>
         </Card>
