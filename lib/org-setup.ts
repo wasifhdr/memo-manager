@@ -1,8 +1,16 @@
 import { db } from '@/lib/db'
-import { organizations, users, departments, memoCategories, workflowTemplates, workflowTemplateSteps } from '@/db/schema'
+import { organizations, users, departments, memoCategories } from '@/db/schema'
 import { hashPassword } from '@/lib/auth'
 import { audit } from '@/lib/audit'
 
+/**
+ * A new organization starts with categories and a department, but deliberately
+ * with no workflow templates: a template's steps are position titles, and those
+ * are chosen from the designations the organization's own users carry. Canned
+ * positions like "Line Manager" would match nobody, leaving every step of a
+ * bootstrapped template unfillable. Admins create templates once real people
+ * and designations exist.
+ */
 const STARTER_CATEGORIES = [
   ['Administrative', 'General administrative matters'],
   ['Financial', 'Budgets, expenditure and financial approvals'],
@@ -12,12 +20,6 @@ const STARTER_CATEGORIES = [
   ['Technical', 'IT and infrastructure'],
   ['General', 'Anything not covered above'],
 ] as const
-
-const STARTER_TEMPLATES = [
-  { name: 'Purchase Request', steps: ['Employee', 'Department Head', 'Finance', 'Director'] },
-  { name: 'Leave Request', steps: ['Employee', 'Line Manager', 'HR'] },
-  { name: 'Procurement Request', steps: ['Requester', 'Department Head', 'Procurement', 'Finance', 'Director'] },
-]
 
 export function slugify(s: string): string {
   return s.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60)
@@ -53,17 +55,6 @@ export async function createOrganization(input: {
       await tx.insert(memoCategories).values(
         STARTER_CATEGORIES.map(([name, description]) => ({ orgId: org.id, name, description })),
       )
-
-      for (const t of STARTER_TEMPLATES) {
-        const [tpl] = await tx.insert(workflowTemplates)
-          .values({ orgId: org.id, name: t.name }).returning()
-        await tx.insert(workflowTemplateSteps).values(
-          t.steps.map((positionTitle, i) => ({
-            orgId: org.id, templateId: tpl.id, stepNo: i + 1,
-            positionTitle, requiredAction: 'approve' as const,
-          })),
-        )
-      }
 
       const [user] = await tx.insert(users).values({
         orgId: org.id, name: input.adminName.trim(),

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll } from 'vitest'
 import { resetDb } from './helpers/db'
 import { db } from '@/lib/db'
-import { organizations, users, departments, memoCategories } from '@/db/schema'
+import { organizations, users, departments, memoCategories, workflowTemplates } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { createOrganization } from '@/lib/org-setup'
 
@@ -30,6 +30,11 @@ describe('createOrganization', () => {
 
     const depts = await db.select().from(departments).where(eq(departments.orgId, r.orgId))
     expect(depts.length).toBeGreaterThan(0)
+
+    // No canned workflow templates: their steps are position titles, which are
+    // chosen from the designations this organization's own users carry.
+    const tpls = await db.select().from(workflowTemplates).where(eq(workflowTemplates.orgId, r.orgId))
+    expect(tpls).toHaveLength(0)
   })
 
   it('rejects a duplicate organization slug', async () => {
