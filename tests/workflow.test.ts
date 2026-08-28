@@ -219,6 +219,44 @@ describe('comments', () => {
     const r = await actOnMemo(f.outsiderCtx, f.memoId, 'comment', 'butting in')
     expect(r.ok).toBe(false)
   })
+
+  it('lets the author and participants talk before the memo is submitted', async () => {
+    expect((await actOnMemo(f.authorCtx, f.memoId, 'comment', 'Drafting this now')).ok).toBe(true)
+    expect((await actOnMemo(f.financeCtx, f.memoId, 'comment', 'Send it over when ready')).ok).toBe(true)
+    expect(await statusOf(f.memoId)).toBe('draft')
+  })
+
+  it('keeps the thread open after the memo is closed', async () => {
+    await submitMemo(f.authorCtx, f.memoId)
+    await actOnMemo(f.deptHeadCtx, f.memoId, 'reject', 'Not this quarter')
+    expect(await statusOf(f.memoId)).toBe('rejected')
+
+    expect((await actOnMemo(f.authorCtx, f.memoId, 'comment', 'Understood — will revisit')).ok).toBe(true)
+    expect((await actOnMemo(f.directorCtx, f.memoId, 'comment', 'Agreed')).ok).toBe(true)
+  })
+
+  it('lets a participant dropped from the workflow keep talking', async () => {
+    await submitMemo(f.authorCtx, f.memoId)
+    const steps = await db.select().from(workflowSteps)
+      .where(and(eq(workflowSteps.memoId, f.memoId), eq(workflowSteps.cycle, 1)))
+    const finance = steps.find((s) => s.assigneeUserId === f.finance.id)!
+    await removeParticipant(f.deptHeadCtx, f.memoId, finance.id)
+
+    const r = await actOnMemo(f.financeCtx, f.memoId, 'comment', 'Still worth flagging the vendor terms')
+    expect(r.ok).toBe(true)
+  })
+
+  it('notifies everyone the memo involves, not just the current cycle', async () => {
+    await submitMemo(f.authorCtx, f.memoId)
+    await actOnMemo(f.deptHeadCtx, f.memoId, 'comment', 'A note for all of you')
+
+    for (const u of [f.author, f.finance, f.director]) {
+      const notes = await db.select().from(notifications).where(eq(notifications.userId, u.id))
+      expect(notes.some((n) => n.type === 'comment_added')).toBe(true)
+    }
+    const own = await db.select().from(notifications).where(eq(notifications.userId, f.deptHead.id))
+    expect(own.some((n) => n.type === 'comment_added')).toBe(false)
+  })
 })
 
 describe('delegation', () => {

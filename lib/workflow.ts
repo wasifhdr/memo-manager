@@ -138,19 +138,20 @@ export async function actOnMemo(
   return db.transaction(async (tx) => {
     const memo = await lockMemo(tx, ctx, memoId)
     if (!memo) return { ok: false, error: 'Memo not found.' }
-    if (TERMINAL.includes(memo.status)) return { ok: false, error: 'This memo is closed.' }
-    if (memo.currentStepNo == null) return { ok: false, error: 'This memo is not in a workflow.' }
 
     const delegators = await activeDelegatorIds(ctx, ctx.user.id, tx)
     const actsFor = new Set([ctx.user.id, ...delegators])
 
-    const allSteps = await tx.select().from(workflowSteps)
-      .where(and(eq(workflowSteps.memoId, memoId), eq(workflowSteps.cycle, memo.currentCycle)))
-      .orderBy(asc(workflowSteps.stepNo))
-
-    // A comment does not advance the workflow, so any participant or the author may leave one.
+    // A comment is a conversation, not a decision: it neither advances the
+    // workflow nor waits for one. Everyone the memo involves — its author and
+    // every participant of every cycle — may leave one whenever they like,
+    // including on a draft and after the memo has closed. Handled before the
+    // in-flight guards below for exactly that reason.
     if (action === 'comment') {
-      const isParticipant = allSteps.some((s) => actsFor.has(s.assigneeUserId))
+      const everyStep = await tx.select().from(workflowSteps)
+        .where(eq(workflowSteps.memoId, memoId))
+        .orderBy(asc(workflowSteps.cycle), asc(workflowSteps.stepNo))
+      const isParticipant = everyStep.some((s) => actsFor.has(s.assigneeUserId))
       if (!isParticipant && memo.authorId !== ctx.user.id) {
         return { ok: false, error: 'Only the author and workflow participants may comment.' }
       }
@@ -159,7 +160,7 @@ export async function actOnMemo(
         cycle: memo.currentCycle, stepNo: memo.currentStepNo, comment: text,
       })
       await touch(tx, memoId, {})
-      const recipients = [memo.authorId, ...allSteps.map((s) => s.assigneeUserId)]
+      const recipients = [...new Set([memo.authorId, ...everyStep.map((s) => s.assigneeUserId)])]
         .filter((id) => id !== ctx.user.id)
       await notifyMany(tx, recipients, {
         orgId: ctx.orgId, type: 'comment_added', memoId,
@@ -171,6 +172,13 @@ export async function actOnMemo(
       })
       return { ok: true, status: memo.status }
     }
+
+    if (TERMINAL.includes(memo.status)) return { ok: false, error: 'This memo is closed.' }
+    if (memo.currentStepNo == null) return { ok: false, error: 'This memo is not in a workflow.' }
+
+    const allSteps = await tx.select().from(workflowSteps)
+      .where(and(eq(workflowSteps.memoId, memoId), eq(workflowSteps.cycle, memo.currentCycle)))
+      .orderBy(asc(workflowSteps.stepNo))
 
     const current = allSteps.find((s) => s.stepNo === memo.currentStepNo)
     if (!current) return { ok: false, error: 'Workflow step not found.' }

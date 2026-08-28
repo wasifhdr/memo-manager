@@ -9,8 +9,8 @@ export type MemoAccess = {
   canAct: boolean
   canEdit: boolean
   canCancel: boolean
-  /** Mirrors workflow.ts's own comment rule: author, or a participant of the
-   * CURRENT cycle — not just the assignee whose turn it currently is. */
+  /** Mirrors workflow.ts's own comment rule: the author, or anyone the workflow
+   * has involved in any cycle — at any point in the memo's life. */
   canComment: boolean
   /** May re-route the workflow: the author, or whoever is holding the memo. */
   canRoute: boolean
@@ -84,10 +84,11 @@ export async function getMemoAccess(
 
   const canEdit = isAuthor && (memo.status === 'draft' || memo.status === 'changes_requested')
   const canCancel = (isAuthor || isAdmin) && !terminal && memo.status !== 'draft'
-  const isCurrentCycleParticipant = participation.some(
-    (s) => s.cycle === memo.currentCycle && actsFor.has(s.assignee),
-  )
-  const canComment = !terminal && memo.currentCycle > 0 && (isAuthor || isCurrentCycleParticipant)
+  // The thread belongs to the people the memo concerns: its author and everyone
+  // the workflow has involved, including participants of earlier cycles and ones
+  // since removed. It stays open on a draft and after the memo closes, so the
+  // record of a decision keeps the discussion that surrounded it.
+  const canComment = isAuthor || isParticipant
 
   return { memoId, canView, canAct, canEdit, canCancel, canComment, canRoute, actingForUserId }
 }

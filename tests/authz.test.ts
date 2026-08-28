@@ -60,5 +60,18 @@ describe('getMemoAccess', () => {
     const a = await getMemoAccess(f.directorCtx, f.memoId)
     expect(a?.canAct).toBe(false)
     expect(a?.canCancel).toBe(false)
+    // The thread outlives the decisions — see the comment rule in workflow.ts.
+    expect(a?.canComment).toBe(true)
+  })
+
+  it('opens the thread to the author and every participant, and nobody else', async () => {
+    const draft = await getMemoAccess(f.authorCtx, f.memoId)
+    expect(draft?.canComment).toBe(true)                    // still a draft
+
+    await submitMemo(f.authorCtx, f.memoId)
+    for (const ctx of [f.authorCtx, f.deptHeadCtx, f.financeCtx, f.directorCtx]) {
+      expect((await getMemoAccess(ctx, f.memoId))?.canComment).toBe(true)
+    }
+    expect((await getMemoAccess(f.outsiderCtx, f.memoId))?.canComment).toBe(false)
   })
 })
