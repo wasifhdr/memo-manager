@@ -174,7 +174,7 @@ async function main() {
   await db.update(memos).set({
     bodyHtml: '<p>Requesting approval to appoint an adjunct instructor for the Spring term introductory course. CV attached; course load confirmed at 2 sections.</p>',
   }).where(eq(memos.id, memoChanges.id))
-  await resubmitMemo(ctxOf(ayesha), memoChanges.id, 'resume')
+  await resubmitMemo(ctxOf(ayesha), memoChanges.id)
 
   // 5. Rejected.
   const memoRejected = await draftMemo({

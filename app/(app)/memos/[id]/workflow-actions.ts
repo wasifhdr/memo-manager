@@ -55,17 +55,14 @@ export async function workflowAction(_prev: ActionState, formData: FormData): Pr
   return { ok: true }
 }
 
-const resubmitSchema = z.object({
-  memoId: z.string().uuid(),
-  mode: z.enum(['resume', 'restart']),
-})
+const resubmitSchema = z.object({ memoId: z.string().uuid() })
 
 export async function resubmitAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const ctx = await requireSession()
   const parsed = resubmitSchema.safeParse(Object.fromEntries(formData))
   if (!parsed.success) return { error: 'Invalid request.' }
 
-  const result = await resubmitMemo(ctx, parsed.data.memoId, parsed.data.mode)
+  const result = await resubmitMemo(ctx, parsed.data.memoId)
   if (!result.ok) return { error: result.error }
   refresh(parsed.data.memoId)
   return { ok: true }

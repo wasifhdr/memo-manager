@@ -258,7 +258,7 @@ export async function actOnMemo(
 }
 
 export async function resubmitMemo(
-  ctx: TenantContext, memoId: string, mode: 'resume' | 'restart',
+  ctx: TenantContext, memoId: string,
 ): Promise<ActResult> {
   return db.transaction(async (tx) => {
     const memo = await lockMemo(tx, ctx, memoId)
@@ -282,17 +282,18 @@ export async function resubmitMemo(
       bodyHtml: memo.bodyHtml, editorId: ctx.user.id, submittedAt: now,
     })
 
-    // Carry approvals forward in `resume` mode; wipe them in `restart` mode.
-    const resumeAt = mode === 'resume' && requester ? requester.stepNo : prev[0].stepNo
+    // A resubmission always resumes at the participant who asked for the changes;
+    // everyone before them keeps the decision they already made.
+    const resumeAt = requester ? requester.stepNo : prev[0].stepNo
     await tx.insert(workflowSteps).values(prev.map((s) => ({
       orgId: ctx.orgId, memoId, cycle, stepNo: s.stepNo,
       positionTitle: s.positionTitle, assigneeUserId: s.assigneeUserId,
       requiredAction: s.requiredAction,
-      outcome: (mode === 'resume' && s.stepNo < resumeAt ? s.outcome : 'pending') as typeof s.outcome,
-      actedByUserId: mode === 'resume' && s.stepNo < resumeAt ? s.actedByUserId : null,
-      onBehalfOfUserId: mode === 'resume' && s.stepNo < resumeAt ? s.onBehalfOfUserId : null,
-      actedAt: mode === 'resume' && s.stepNo < resumeAt ? s.actedAt : null,
-      comment: mode === 'resume' && s.stepNo < resumeAt ? s.comment : null,
+      outcome: (s.stepNo < resumeAt ? s.outcome : 'pending') as typeof s.outcome,
+      actedByUserId: s.stepNo < resumeAt ? s.actedByUserId : null,
+      onBehalfOfUserId: s.stepNo < resumeAt ? s.onBehalfOfUserId : null,
+      actedAt: s.stepNo < resumeAt ? s.actedAt : null,
+      comment: s.stepNo < resumeAt ? s.comment : null,
     })))
 
     const target = prev.find((s) => s.stepNo === resumeAt)!
@@ -307,9 +308,7 @@ export async function resubmitMemo(
     })
     await event(tx, {
       orgId: ctx.orgId, memoId, type: 'resubmitted', actorId: ctx.user.id, cycle, stepNo: resumeAt,
-      detail: mode === 'resume'
-        ? `Resubmitted — resumed at step ${resumeAt}`
-        : 'Resubmitted — workflow restarted from the first participant',
+      detail: `Resubmitted — resumed at step ${resumeAt}`,
     })
     await notify(tx, {
       orgId: ctx.orgId, userId: target.assigneeUserId, type: 'resubmitted', memoId,

@@ -68,7 +68,7 @@ describe('cross-tenant writes are refused, never applied', () => {
     expect((await submitMemo(f.otherOrgCtx, f.memoId)).ok).toBe(false)
     await submitMemo(f.authorCtx, f.memoId)
     expect((await actOnMemo(f.otherOrgCtx, f.memoId, 'approve', null)).ok).toBe(false)
-    expect((await resubmitMemo(f.otherOrgCtx, f.memoId, 'resume')).ok).toBe(false)
+    expect((await resubmitMemo(f.otherOrgCtx, f.memoId)).ok).toBe(false)
     expect((await cancelMemo(f.otherOrgCtx, f.memoId, 'x')).ok).toBe(false)
   })
 

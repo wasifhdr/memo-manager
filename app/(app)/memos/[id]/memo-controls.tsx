@@ -4,7 +4,7 @@ import { useActionState, useState, useRef } from 'react'
 import { submitAction, resubmitAction, cancelAction } from './workflow-actions'
 import type { ActionState } from '@/app/(auth)/actions'
 import { Button } from '@/components/ui/button'
-import { Select, Textarea, FieldError, Label } from '@/components/ui/field'
+import { Textarea, FieldError } from '@/components/ui/field'
 import { Modal } from '@/components/ui/modal'
 
 export function SubmitControl({ memoId }: { memoId: string }) {
@@ -21,23 +21,10 @@ export function SubmitControl({ memoId }: { memoId: string }) {
 export function ResubmitControl({ memoId }: { memoId: string }) {
   const [state, formAction, pending] = useActionState<ActionState, FormData>(resubmitAction, undefined)
   return (
-    <form action={formAction} className="flex flex-wrap items-end gap-2">
+    <form action={formAction} className="flex flex-col items-start gap-1.5">
       <input type="hidden" name="memoId" value={memoId} />
-      <div>
-        <Label htmlFor="mode" hint="where the workflow continues">Resubmit</Label>
-        <Select
-          id="mode" name="mode" defaultValue="resume"
-          options={[
-            { value: 'resume', label: 'Resume at the reviewer who requested changes' },
-            { value: 'restart', label: 'Restart from the first participant' },
-          ]}
-          className="w-96 max-w-full"
-        />
-      </div>
       <Button type="submit" disabled={pending}>{pending ? 'Resubmitting…' : 'Resubmit'}</Button>
-      <div className="w-full">
-        <FieldError>{state && 'error' in state ? state.error : undefined}</FieldError>
-      </div>
+      <FieldError>{state && 'error' in state ? state.error : undefined}</FieldError>
     </form>
   )
 }

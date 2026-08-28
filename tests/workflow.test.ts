@@ -144,10 +144,10 @@ describe('request changes and resubmission', () => {
     expect(notes.some((n) => n.type === 'changes_requested')).toBe(true)
   })
 
-  it('resume mode returns to the participant who asked for changes', async () => {
+  it('resubmission returns to the participant who asked for changes', async () => {
     await actOnMemo(f.deptHeadCtx, f.memoId, 'approve', null)          // step 1 done
     await actOnMemo(f.financeCtx, f.memoId, 'request_changes', 'Fix the total')
-    const r = await resubmitMemo(f.authorCtx, f.memoId, 'resume')
+    const r = await resubmitMemo(f.authorCtx, f.memoId)
     expect(r.ok).toBe(true)
 
     const [m] = await db.select().from(memos).where(eq(memos.id, f.memoId))
@@ -162,10 +162,9 @@ describe('request changes and resubmission', () => {
     expect(c2step1[0].outcome).toBe('approved')   // carried forward
   })
 
-  it('restart mode goes back to the first participant', async () => {
-    await actOnMemo(f.deptHeadCtx, f.memoId, 'approve', null)
-    await actOnMemo(f.financeCtx, f.memoId, 'request_changes', 'Fix the total')
-    await resubmitMemo(f.authorCtx, f.memoId, 'restart')
+  it('goes back to the first participant when they were the one who asked', async () => {
+    await actOnMemo(f.deptHeadCtx, f.memoId, 'request_changes', 'Fix the total')
+    await resubmitMemo(f.authorCtx, f.memoId)
 
     const [m] = await db.select().from(memos).where(eq(memos.id, f.memoId))
     expect(m.currentStepNo).toBe(1)
@@ -177,7 +176,7 @@ describe('request changes and resubmission', () => {
 
   it('keeps every previous version and every previous cycle', async () => {
     await actOnMemo(f.deptHeadCtx, f.memoId, 'request_changes', 'Rework')
-    await resubmitMemo(f.authorCtx, f.memoId, 'resume')
+    await resubmitMemo(f.authorCtx, f.memoId)
     const cycle1 = await db.select().from(workflowSteps)
       .where(and(eq(workflowSteps.memoId, f.memoId), eq(workflowSteps.cycle, 1)))
     expect(cycle1).toHaveLength(3)
@@ -186,7 +185,7 @@ describe('request changes and resubmission', () => {
 
   it('refuses resubmission by anyone but the author', async () => {
     await actOnMemo(f.deptHeadCtx, f.memoId, 'request_changes', 'Rework')
-    const r = await resubmitMemo(f.deptHeadCtx, f.memoId, 'resume')
+    const r = await resubmitMemo(f.deptHeadCtx, f.memoId)
     expect(r.ok).toBe(false)
   })
 
