@@ -50,7 +50,7 @@ export function TemplateCard({ template, designations }: { template: Template; d
             {template.steps.map((s, i) => (
               <li key={i} className="flex items-center gap-2">
                 <span className="rounded-[var(--radius-control)] border border-(--color-sand) bg-(--color-cream) px-2 py-1">
-                  {s.positionTitle} <span className="text-(--color-ink)/50">({s.requiredAction})</span>
+                  {s.positionTitle}
                 </span>
                 {i < template.steps.length - 1 ? <span className="text-(--color-ink)/50">→</span> : null}
               </li>

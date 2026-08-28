@@ -150,7 +150,7 @@ export async function buildMemoPdf(detail: NonNullable<MemoDetail>, org: OrgInfo
   if (currentCycleSteps.length > 0) {
     w.heading('Workflow participants')
     for (const s of currentCycleSteps) {
-      w.text(`${s.stepNo}. ${s.positionTitle ?? ''} — ${s.assigneeName} (${s.requiredAction})`, { size: 9.5, gap: 2 })
+      w.text(`${s.stepNo}. ${s.positionTitle ?? ''} — ${s.assigneeName}`, { size: 9.5, gap: 2 })
     }
   }
 
