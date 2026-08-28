@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { requireSession } from '@/lib/tenant'
-import { listDepartments, listCategories } from '@/lib/repo/org'
+import { listDepartments, listCategories, listActiveUsers, listTemplatesWithSteps } from '@/lib/repo/org'
 import { userDashboard } from '@/lib/repo/stats'
 import { PageHeader } from '@/components/ui/page-header'
 import { NewMemoButton } from '@/components/memo/new-memo-button'
@@ -14,11 +14,13 @@ export const metadata: Metadata = { title: 'Dashboard' }
 
 export default async function DashboardPage() {
   const ctx = await requireSession()
-  // One batch, not two: the option lists feed the New memo modal and do not
-  // depend on the dashboard figures.
-  const [departments, categories, d] = await Promise.all([
+  // One batch, not two: the New memo modal's lists do not depend on the
+  // dashboard figures.
+  const [departments, categories, activeUsers, templates, d] = await Promise.all([
     listDepartments(ctx, { activeOnly: true }),
     listCategories(ctx, { activeOnly: true }),
+    listActiveUsers(ctx),
+    listTemplatesWithSteps(ctx),
     userDashboard(ctx),
   ])
   const departmentOptions = departments.map((dep) => ({ value: dep.id, label: dep.name }))
@@ -28,7 +30,14 @@ export default async function DashboardPage() {
     <div>
       <PageHeader
         title={`Welcome back, ${ctx.user.name.split(' ')[0]}`}
-        actions={<NewMemoButton departments={departmentOptions} categories={categoryOptions} />}
+        actions={
+          <NewMemoButton
+            departments={departmentOptions}
+            categories={categoryOptions}
+            activeUsers={activeUsers}
+            templates={templates}
+          />
+        }
       />
 
       <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">

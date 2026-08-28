@@ -13,6 +13,7 @@ import { getOwnedMemo, countAttachments } from '@/lib/repo/memo'
 import { sanitizeMemoHtml } from '@/lib/sanitize'
 import { nextMemoNumber } from '@/lib/memo-number'
 import { audit } from '@/lib/audit'
+import { submitMemo } from '@/lib/workflow'
 import type { ActionState } from '@/app/(auth)/actions'
 import type { Priority, RequiredAction } from '@/db/schema'
 import { ATTACHMENT_MAX_BYTES, ATTACHMENT_MAX_PER_MEMO, ALLOWED_MIME } from '@/lib/attachment-limits'
@@ -23,6 +24,12 @@ const draftSchema = z.object({
   departmentId: z.string().uuid().optional().or(z.literal('')),
   categoryId: z.string().uuid().optional().or(z.literal('')),
   priority: z.enum(['normal', 'high', 'urgent']),
+})
+
+const stepInput = z.object({
+  assigneeUserId: z.string().uuid(),
+  positionTitle: z.string().min(1).max(120),
+  requiredAction: z.enum(['approve', 'review']),
 })
 
 async function assertBelongsToOrg(orgId: string, departmentId?: string, categoryId?: string) {
@@ -38,15 +45,72 @@ async function assertBelongsToOrg(orgId: string, departmentId?: string, category
   }
 }
 
-export async function createDraftAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+/**
+ * The whole memo — fields, workflow participants and attachments — arrives in
+ * one submission from the New memo modal. `publish` decides whether it stops at
+ * draft or goes straight into the workflow.
+ */
+const createSchema = draftSchema.extend({
+  publish: z.enum(['true', 'false']).optional().default('false'),
+  steps: z.string().optional().default('[]').transform((raw, ctx) => {
+    try {
+      return z.array(stepInput).parse(JSON.parse(raw))
+    } catch {
+      ctx.addIssue({ code: 'custom', message: 'Give every workflow participant a position and an assignee.' })
+      return z.NEVER
+    }
+  }),
+})
+
+/** Mirrors the per-file rules of `uploadAttachmentAction` for a whole batch. */
+function rejectBadFiles(files: File[]): string | null {
+  if (files.length > ATTACHMENT_MAX_PER_MEMO) {
+    return `A memo can have at most ${ATTACHMENT_MAX_PER_MEMO} attachments.`
+  }
+  for (const file of files) {
+    if (file.size > ATTACHMENT_MAX_BYTES) return `"${file.name}" is larger than 4 MB.`
+    const allowedExts = ALLOWED_MIME[file.type]
+    if (!allowedExts || !allowedExts.includes(path.extname(file.name).toLowerCase())) {
+      return `"${file.name}" is not a supported file type.`
+    }
+  }
+  return null
+}
+
+export async function createMemoAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const ctx = await requireSession()
-  const parsed = draftSchema.safeParse(Object.fromEntries(formData))
+  const parsed = createSchema.safeParse(Object.fromEntries(formData))
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Check the form and try again.' }
   const v = parsed.data
+  const publish = v.publish === 'true'
+
+  if (publish && v.steps.length === 0) {
+    return { error: 'Add at least one workflow participant before publishing.' }
+  }
+
+  const files = formData.getAll('files').filter((f): f is File => f instanceof File && f.size > 0)
+  const fileError = rejectBadFiles(files)
+  if (fileError) return { error: fileError }
 
   let memoId: string
   try {
     await assertBelongsToOrg(ctx.orgId, v.departmentId || undefined, v.categoryId || undefined)
+
+    if (v.steps.length > 0) {
+      const activeUsers = await db.select({ id: users.id }).from(users)
+        .where(and(eq(users.orgId, ctx.orgId), eq(users.status, 'active')))
+      const activeIds = new Set(activeUsers.map((u) => u.id))
+      if (!v.steps.every((s) => activeIds.has(s.assigneeUserId))) {
+        return { error: 'Every workflow participant must be an active user in your organization.' }
+      }
+    }
+
+    const payloads = await Promise.all(files.map(async (file) => ({
+      filename: sanitizeFilename(file.name),
+      mime: file.type,
+      sizeBytes: file.size,
+      data: Buffer.from(await file.arrayBuffer()),
+    })))
 
     memoId = await db.transaction(async (tx) => {
       const org = await getOrganization(ctx)
@@ -63,6 +127,26 @@ export async function createDraftAction(_prev: ActionState, formData: FormData):
         orgId: ctx.orgId, memoId: memo.id, type: 'created', actorId: ctx.user.id,
         detail: `Draft created`,
       })
+
+      if (v.steps.length > 0) {
+        await tx.insert(workflowSteps).values(v.steps.map((s, i) => ({
+          orgId: ctx.orgId, memoId: memo.id, cycle: 1, stepNo: i + 1,
+          positionTitle: s.positionTitle, assigneeUserId: s.assigneeUserId,
+          requiredAction: s.requiredAction as RequiredAction,
+        })))
+      }
+
+      for (const a of payloads) {
+        await tx.insert(memoAttachments).values({
+          orgId: ctx.orgId, memoId: memo.id, filename: a.filename, mime: a.mime,
+          sizeBytes: a.sizeBytes, data: a.data, uploadedById: ctx.user.id, versionNo: 1,
+        })
+        await tx.insert(memoEvents).values({
+          orgId: ctx.orgId, memoId: memo.id, type: 'attachment_added', actorId: ctx.user.id,
+          detail: a.filename,
+        })
+      }
+
       await audit(tx, {
         orgId: ctx.orgId, actorId: ctx.user.id, eventType: 'memo_created',
         entityType: 'memo', entityId: memo.id, description: `${memo.memoNumber} created as draft`,
@@ -73,7 +157,13 @@ export async function createDraftAction(_prev: ActionState, formData: FormData):
     return { error: e instanceof Error ? e.message : 'Could not create the memo.' }
   }
 
-  redirect(`/memos/${memoId}/edit`)
+  if (publish) {
+    const result = await submitMemo(ctx, memoId)
+    // The memo exists as a draft either way; the author can publish it from there.
+    if (!result.ok) return { error: result.error }
+  }
+
+  redirect(`/memos/${memoId}`)
 }
 
 const updateSchema = z.object({
@@ -135,12 +225,6 @@ export async function deleteDraftAction(_prev: ActionState, formData: FormData):
   })
   redirect('/memos')
 }
-
-const stepInput = z.object({
-  assigneeUserId: z.string().uuid(),
-  positionTitle: z.string().min(1).max(120),
-  requiredAction: z.enum(['approve', 'review']),
-})
 
 const setParticipantsSchema = z.object({
   id: z.string().uuid(),

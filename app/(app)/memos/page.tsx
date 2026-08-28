@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { requireSession } from '@/lib/tenant'
-import { listDepartments, listCategories } from '@/lib/repo/org'
+import { listDepartments, listCategories, listActiveUsers, listTemplatesWithSteps } from '@/lib/repo/org'
 import { listMyMemos } from '@/lib/repo/memo'
 import { PageHeader } from '@/components/ui/page-header'
 import { NewMemoButton } from '@/components/memo/new-memo-button'
@@ -33,11 +33,12 @@ export default async function MyMemosPage({
   const { status } = await searchParams
   const statusFilter = STATUS_OPTIONS.some((o) => o.value === status) ? (status as MemoStatus) : undefined
 
-  // One batch: the option lists feed the New memo modal and are unrelated to
-  // the list itself.
-  const [departments, categories, { rows, total }] = await Promise.all([
+  // One batch: everything but the memo list itself feeds the New memo modal.
+  const [departments, categories, activeUsers, templates, { rows, total }] = await Promise.all([
     listDepartments(ctx, { activeOnly: true }),
     listCategories(ctx, { activeOnly: true }),
+    listActiveUsers(ctx),
+    listTemplatesWithSteps(ctx),
     listMyMemos(ctx, { status: statusFilter, pageSize: 50 }),
   ])
   const departmentOptions = departments.map((d) => ({ value: d.id, label: d.name }))
@@ -48,7 +49,14 @@ export default async function MyMemosPage({
       <PageHeader
         title="My Memos"
         description={`${total} memo${total === 1 ? '' : 's'} you have created.`}
-        actions={<NewMemoButton departments={departmentOptions} categories={categoryOptions} />}
+        actions={
+          <NewMemoButton
+            departments={departmentOptions}
+            categories={categoryOptions}
+            activeUsers={activeUsers}
+            templates={templates}
+          />
+        }
       />
       <ListFilters action="/memos" statusOptions={STATUS_OPTIONS} current={{ status }} />
       <DataTable

@@ -1,7 +1,7 @@
 import { type ButtonHTMLAttributes, type AnchorHTMLAttributes, forwardRef } from "react";
 import Link from "next/link";
 
-type Variant = "default" | "secondary" | "primary" | "ink" | "danger" | "ghost" | "danger-ghost";
+type Variant = "default" | "secondary" | "primary" | "ink" | "success" | "gold" | "danger" | "ghost" | "danger-ghost";
 type Size = "md" | "sm";
 
 const base =
@@ -20,6 +20,8 @@ const variants: Record<Variant, string> = {
   default: "bg-(--color-paper) text-(--color-ink) hover:bg-(--color-cream)",
   secondary: "bg-(--color-paper) text-(--color-ink) hover:bg-(--color-cream)",
   primary: "bg-(--color-orange) text-white hover:bg-(--color-orange-deep)",
+  success: "bg-(--color-green) text-white hover:bg-(--color-green-deep)",
+  gold: "bg-(--color-gold) text-(--color-ink) hover:bg-(--color-gold)/80",
   ink: "bg-(--color-ink) text-(--color-paper) hover:bg-(--color-ink)/85",
   danger: "bg-(--color-red) text-white hover:bg-(--color-red-deep)",
   ghost: "border-transparent! shadow-none! bg-transparent text-(--color-ink)/70 hover:bg-(--color-cream) hover:text-(--color-ink) active:translate-x-0! active:translate-y-0!",
