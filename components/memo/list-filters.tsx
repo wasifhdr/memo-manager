@@ -17,7 +17,7 @@ export function ListFilters({
       {statusOptions ? (
         <div>
           <label className="mb-1.5 block text-label uppercase text-(--color-ink)/70" htmlFor="status">Status</label>
-          <Select id="status" name="status" defaultValue={current.status ?? ''} placeholder="All statuses" options={statusOptions} className="w-48" />
+          <Select id="status" name="status" defaultValue={current.status ?? ''} placeholder="All statuses" options={statusOptions} className="w-48" searchable={false} />
         </div>
       ) : null}
       {priorityOptions ? (
