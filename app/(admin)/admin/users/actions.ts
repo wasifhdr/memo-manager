@@ -10,7 +10,7 @@ import { requireAdmin } from '@/lib/tenant'
 import { hashPassword, revokeUserSessions, createPasswordResetToken } from '@/lib/auth'
 import { audit } from '@/lib/audit'
 import type { ActionState } from '@/app/(auth)/actions'
-import { parseBulkUsers } from './bulk-parse'
+import { validateBulkUsers, type BulkUserDraft } from './bulk-users'
 
 export type CreateUserState =
   | { error: string }
@@ -154,46 +154,52 @@ export async function generateResetLink(_prev: ResetLinkState, formData: FormDat
 }
 
 export type BulkCreatedUser = { name: string; email: string; temporaryPassword: string }
-export type BulkFailedRow = { line: number; email: string; message: string }
+export type BulkFailedRow = { row: number; email: string; message: string }
 export type BulkCreateState =
   | { error: string }
   | { ok: true; created: BulkCreatedUser[]; failed: BulkFailedRow[] }
   | undefined
 
 /**
- * Creates many users from pasted CSV. Rows are applied individually rather than
- * in one transaction: a single duplicate email should not discard the rest of
- * the batch, so every row reports its own outcome.
+ * Creates many users at once. Rows are applied individually rather than in one
+ * transaction: a single duplicate email should not discard the rest of the
+ * batch, so every row reports its own outcome.
  */
 export async function createUsersBulk(_prev: BulkCreateState, formData: FormData): Promise<BulkCreateState> {
   const ctx = await requireAdmin()
-  const csv = formData.get('csv')
-  if (typeof csv !== 'string' || !csv.trim()) return { error: 'Paste at least one row first.' }
 
-  const { rows, errors } = parseBulkUsers(csv)
-  if (rows.length === 0) {
-    return { error: errors[0]?.message ?? 'Nothing to add — check the format and try again.' }
+  const raw = formData.get('users')
+  if (typeof raw !== 'string') return { error: 'Nothing to add.' }
+
+  let drafts: BulkUserDraft[]
+  try {
+    const parsed: unknown = JSON.parse(raw)
+    if (!Array.isArray(parsed)) throw new Error('not an array')
+    drafts = parsed as BulkUserDraft[]
+  } catch {
+    return { error: 'Could not read the submitted rows.' }
   }
 
-  // Departments are given by name; resolve them once, scoped to this org.
+  const { valid, errors } = validateBulkUsers(drafts)
+  if (valid.length === 0) {
+    return { error: errors[0]?.message ?? 'Fill in at least one user.' }
+  }
+
+  // Every department id must belong to the caller's own organization; an id
+  // from anywhere else simply will not be in this set.
   const orgDepartments = await db
-    .select({ id: departments.id, name: departments.name })
+    .select({ id: departments.id })
     .from(departments)
     .where(eq(departments.orgId, ctx.orgId))
-  const byName = new Map(orgDepartments.map((d) => [d.name.trim().toLowerCase(), d.id]))
+  const allowed = new Set(orgDepartments.map((d) => d.id))
 
   const created: BulkCreatedUser[] = []
-  const failed: BulkFailedRow[] = errors.map((e) => ({ line: e.line, email: '', message: e.message }))
+  const failed: BulkFailedRow[] = errors.map((e) => ({ row: e.index + 1, email: '', message: e.message }))
 
-  for (const row of rows) {
-    let departmentId: string | null = null
-    if (row.department) {
-      const match = byName.get(row.department.toLowerCase())
-      if (!match) {
-        failed.push({ line: row.line, email: row.email, message: `No department named "${row.department}".` })
-        continue
-      }
-      departmentId = match
+  for (const { index, draft } of valid) {
+    if (draft.departmentId && !allowed.has(draft.departmentId)) {
+      failed.push({ row: index + 1, email: draft.email, message: 'That department is not in your organization.' })
+      continue
     }
 
     const temporaryPassword = generatePassword()
@@ -201,22 +207,23 @@ export async function createUsersBulk(_prev: BulkCreateState, formData: FormData
 
     try {
       const [user] = await db.insert(users).values({
-        orgId: ctx.orgId, name: row.name, email: row.email,
-        designation: row.designation || null, departmentId,
-        role: row.role, passwordHash,
+        orgId: ctx.orgId, name: draft.name, email: draft.email,
+        designation: draft.designation || null,
+        departmentId: draft.departmentId || null,
+        role: draft.role, passwordHash,
       }).returning()
 
       await audit(undefined, {
         orgId: ctx.orgId, actorId: ctx.user.id, eventType: 'user_created',
         entityType: 'user', entityId: user.id,
-        description: `User ${user.email} created (bulk import)`,
+        description: `User ${user.email} created (bulk)`,
       })
       created.push({ name: user.name, email: user.email, temporaryPassword })
     } catch {
-      failed.push({ line: row.line, email: row.email, message: 'A user with that email already exists.' })
+      failed.push({ row: index + 1, email: draft.email, message: 'A user with that email already exists.' })
     }
   }
 
   revalidatePath('/admin/users')
-  return { ok: true, created, failed: failed.sort((a, b) => a.line - b.line) }
+  return { ok: true, created, failed: failed.sort((a, b) => a.row - b.row) }
 }

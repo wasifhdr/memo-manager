@@ -32,7 +32,7 @@ export default async function UsersPage() {
         description="Invite users, assign departments and roles, and activate or deactivate accounts."
         actions={
           <>
-            <BulkAddUsersButton />
+            <BulkAddUsersButton departments={departmentOptions} />
             <NewUserButton departments={departmentOptions} />
           </>
         }
