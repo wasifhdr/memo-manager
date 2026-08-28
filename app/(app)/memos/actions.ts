@@ -16,7 +16,10 @@ import { audit } from '@/lib/audit'
 import { submitMemo, resubmitMemo } from '@/lib/workflow'
 import type { ActionState } from '@/app/(auth)/actions'
 import type { Priority, RequiredAction } from '@/db/schema'
-import { ATTACHMENT_MAX_BYTES, ATTACHMENT_MAX_PER_MEMO, ALLOWED_MIME } from '@/lib/attachment-limits'
+import {
+  ATTACHMENT_MAX_BYTES, ATTACHMENT_MAX_PER_MEMO, ALLOWED_MIME,
+  ATTACHMENT_MAX_REQUEST_BYTES, overRequestBudget, formatBytes,
+} from '@/lib/attachment-limits'
 
 const draftSchema = z.object({
   subject: z.string().min(3).max(200),
@@ -73,6 +76,11 @@ function rejectBadFiles(files: File[]): string | null {
     if (!allowedExts || !allowedExts.includes(path.extname(file.name).toLowerCase())) {
       return `"${file.name}" is not a supported file type.`
     }
+  }
+  // The whole submission travels in one request; the sum has its own ceiling.
+  if (overRequestBudget(files.map((f) => f.size))) {
+    return `Those files total ${formatBytes(files.reduce((n, f) => n + f.size, 0))}. `
+      + `Attach up to ${formatBytes(ATTACHMENT_MAX_REQUEST_BYTES)} with the memo and add the rest afterwards.`
   }
   return null
 }

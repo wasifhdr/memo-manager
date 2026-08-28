@@ -8,15 +8,12 @@ import { Input, Label, Select, FieldError } from '@/components/ui/field'
 import { MemoEditor } from '@/components/memo/editor'
 import { ParticipantSteps, type ActiveUser, type Step, type Template } from '@/components/memo/participant-picker'
 import { IconPaperclip, IconClose } from '@/components/ui/icons'
-import { ATTACHMENT_MAX_BYTES, ATTACHMENT_MAX_PER_MEMO } from '@/lib/attachment-limits'
+import {
+  ATTACHMENT_MAX_BYTES, ATTACHMENT_MAX_PER_MEMO,
+  ATTACHMENT_MAX_REQUEST_BYTES, overRequestBudget, formatBytes,
+} from '@/lib/attachment-limits'
 
 type Option = { value: string; label: string }
-
-function formatBytes(n: number): string {
-  if (n < 1024) return `${n} B`
-  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`
-  return `${(n / (1024 * 1024)).toFixed(1)} MB`
-}
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -48,6 +45,9 @@ export function NewMemoForm({
   // Set by whichever submit button was pressed — a click always precedes the
   // form's own submit event, so this is settled by the time `submit` runs.
   const publish = useRef(false)
+
+  const attachedBytes = files.reduce((n, f) => n + f.size, 0)
+  const tooMuch = overRequestBudget(files.map((f) => f.size))
 
   function submit(formData: FormData) {
     formData.set('publish', publish.current ? 'true' : 'false')
@@ -139,17 +139,25 @@ export function NewMemoForm({
           />
         ) : null}
         <p className="mt-1 text-[0.75rem] text-(--color-ink)/50">
-          Up to {(ATTACHMENT_MAX_BYTES / (1024 * 1024)).toFixed(0)} MB per file, {ATTACHMENT_MAX_PER_MEMO} files per memo.
+          Up to {(ATTACHMENT_MAX_BYTES / (1024 * 1024)).toFixed(0)} MB per file, {ATTACHMENT_MAX_PER_MEMO} files per memo,
+          and {formatBytes(ATTACHMENT_MAX_REQUEST_BYTES)} in one go
+          {files.length > 0 ? ` — ${formatBytes(attachedBytes)} attached` : ''}.
         </p>
+        {tooMuch ? (
+          <FieldError>
+            {`Those files total ${formatBytes(attachedBytes)}. Attach up to `
+              + `${formatBytes(ATTACHMENT_MAX_REQUEST_BYTES)} with the memo and add the rest from the memo page afterwards.`}
+          </FieldError>
+        ) : null}
       </Section>
 
       <FieldError>{state && 'error' in state ? state.error : undefined}</FieldError>
 
       <div className="flex flex-wrap items-center gap-3 border-t border-(--color-sand) pt-4">
-        <Button type="submit" variant="success" onClick={() => { publish.current = true }} disabled={pending}>
+        <Button type="submit" variant="success" onClick={() => { publish.current = true }} disabled={pending || tooMuch}>
           {pending ? 'Working…' : 'Publish'}
         </Button>
-        <Button type="submit" variant="gold" onClick={() => { publish.current = false }} disabled={pending}>
+        <Button type="submit" variant="gold" onClick={() => { publish.current = false }} disabled={pending || tooMuch}>
           Save draft
         </Button>
         <Button type="button" variant="danger" onClick={onCancel} disabled={pending}>
