@@ -46,7 +46,8 @@ export async function changePasswordAction(_prev: ActionState, formData: FormDat
   }
 
   const passwordHash = await hashPassword(parsed.data.newPassword)
-  await db.update(users).set({ passwordHash }).where(eq(users.id, ctx.user.id))
+  // Choosing their own password clears the administrator-issued gate.
+  await db.update(users).set({ passwordHash, mustChangePassword: false }).where(eq(users.id, ctx.user.id))
 
   // Revoke every session — including this one — then issue a fresh one so
   // the user stays signed in only on this device.

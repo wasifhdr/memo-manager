@@ -18,6 +18,8 @@ export type SessionUser = {
   status: UserStatus
   departmentId: string | null
   designation: string | null
+  /** True while the account is still on an administrator-issued password. */
+  mustChangePassword: boolean
 }
 
 export function hashToken(raw: string): string {
@@ -49,6 +51,7 @@ export async function resolveSession(rawToken: string): Promise<SessionUser | nu
       id: users.id, orgId: users.orgId, name: users.name, email: users.email,
       role: users.role, status: users.status,
       departmentId: users.departmentId, designation: users.designation,
+      mustChangePassword: users.mustChangePassword,
     })
     .from(sessions)
     .innerJoin(users, eq(users.id, sessions.userId))

@@ -76,6 +76,9 @@ export const users = pgTable('users', {
   role: text('role', { enum: ROLES }).notNull().default('user'),
   status: text('status', { enum: USER_STATUSES }).notNull().default('active'),
   passwordHash: text('password_hash').notNull(),
+  // Set when an administrator issues the password, cleared once the user
+  // picks their own. Gates the app until they do.
+  mustChangePassword: boolean('must_change_password').notNull().default(false),
   lastLoginAt: timestamp('last_login_at', { withTimezone: true }),
   createdAt: createdAt(),
 }, (t) => [

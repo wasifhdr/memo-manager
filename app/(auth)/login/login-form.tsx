@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { loginAction, type ActionState } from '@/app/(auth)/actions'
 import { Button } from '@/components/ui/button'
 import { Input, Label, FieldError } from '@/components/ui/field'
+import { PasswordInput } from '@/components/ui/password-input'
 
 export function LoginForm({ next }: { next?: string }) {
   const [state, formAction, pending] = useActionState<ActionState, FormData>(loginAction, undefined)
@@ -28,7 +29,7 @@ export function LoginForm({ next }: { next?: string }) {
             Forgot password?
           </Link>
         </div>
-        <Input id="password" name="password" type="password" autoComplete="current-password" required />
+        <PasswordInput id="password" name="password" autoComplete="current-password" required />
       </div>
 
       <FieldError>{state?.error}</FieldError>

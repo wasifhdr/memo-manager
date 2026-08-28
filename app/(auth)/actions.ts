@@ -131,7 +131,7 @@ export async function resetPasswordAction(
   if (!userId) return { error: 'This reset link is invalid or has expired.' }
 
   const passwordHash = await hashPassword(parsed.data.password)
-  await db.update(users).set({ passwordHash }).where(eq(users.id, userId))
+  await db.update(users).set({ passwordHash, mustChangePassword: false }).where(eq(users.id, userId))
   await revokeUserSessions(userId)
   // Revoking sessions does not remove the browser's cookie — clear it too,
   // or middleware sees a (now-invalid) cookie and bounces /login to /dashboard.

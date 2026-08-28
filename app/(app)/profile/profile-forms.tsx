@@ -5,6 +5,7 @@ import { updateProfileAction, changePasswordAction } from './actions'
 import type { ActionState } from '@/app/(auth)/actions'
 import { Button } from '@/components/ui/button'
 import { Input, Label, FieldError } from '@/components/ui/field'
+import { PasswordInput } from '@/components/ui/password-input'
 import { Card, CardHeader, CardBody } from '@/components/ui/card'
 import { useToast } from '@/components/ui/toast'
 import { useEffect, useRef } from 'react'
@@ -69,15 +70,15 @@ export function ChangePasswordForm() {
         <form ref={formRef} action={formAction} className="flex flex-col gap-4">
           <div>
             <Label htmlFor="currentPassword">Current password</Label>
-            <Input id="currentPassword" name="currentPassword" type="password" autoComplete="current-password" required />
+            <PasswordInput id="currentPassword" name="currentPassword" autoComplete="current-password" required />
           </div>
           <div>
             <Label htmlFor="newPassword" hint="min. 10 characters">New password</Label>
-            <Input id="newPassword" name="newPassword" type="password" autoComplete="new-password" minLength={10} required />
+            <PasswordInput id="newPassword" name="newPassword" autoComplete="new-password" minLength={10} required />
           </div>
           <div>
             <Label htmlFor="confirm">Confirm new password</Label>
-            <Input id="confirm" name="confirm" type="password" autoComplete="new-password" minLength={10} required />
+            <PasswordInput id="confirm" name="confirm" autoComplete="new-password" minLength={10} required />
           </div>
           <FieldError>{state && 'error' in state ? state.error : undefined}</FieldError>
           <p className="text-[0.75rem] text-(--color-ink)/50">

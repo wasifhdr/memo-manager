@@ -50,6 +50,7 @@ async function main() {
     return {
       id: u.id, orgId: u.orgId, name: u.name, email: u.email, role: u.role,
       status: u.status, departmentId: u.departmentId, designation: u.designation,
+      mustChangePassword: u.mustChangePassword,
     }
   }
 
@@ -105,7 +106,7 @@ async function main() {
   const nbuAdmin: SessionUser = {
     id: nbuAdminRow.id, orgId: nbuAdminRow.orgId, name: nbuAdminRow.name, email: nbuAdminRow.email,
     role: nbuAdminRow.role, status: nbuAdminRow.status, departmentId: nbuAdminRow.departmentId,
-    designation: nbuAdminRow.designation,
+    designation: nbuAdminRow.designation, mustChangePassword: nbuAdminRow.mustChangePassword,
   }
 
   const [{ id: administrationDeptId }] = await db.select({ id: departments.id }).from(departments)
@@ -245,7 +246,7 @@ async function main() {
   const aurAdmin: SessionUser = {
     id: aurAdminRow.id, orgId: aurAdminRow.orgId, name: aurAdminRow.name, email: aurAdminRow.email,
     role: aurAdminRow.role, status: aurAdminRow.status, departmentId: aurAdminRow.departmentId,
-    designation: aurAdminRow.designation,
+    designation: aurAdminRow.designation, mustChangePassword: aurAdminRow.mustChangePassword,
   }
 
   const [{ id: aurAdministrationDeptId }] = await db.select({ id: departments.id }).from(departments)

@@ -29,6 +29,9 @@ export type BulkValidation = {
 /** Each row costs a bcrypt hash, so a batch is bounded. */
 export const BULK_MAX_ROWS = 100
 
+/** Matches the minimum enforced everywhere else a password is chosen. */
+export const BULK_PASSWORD_MIN = 10
+
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export function emptyDraft(): BulkUserDraft {

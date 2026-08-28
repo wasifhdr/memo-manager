@@ -10,7 +10,7 @@ import { requireAdmin } from '@/lib/tenant'
 import { hashPassword, revokeUserSessions, createPasswordResetToken } from '@/lib/auth'
 import { audit } from '@/lib/audit'
 import type { ActionState } from '@/app/(auth)/actions'
-import { validateBulkUsers, type BulkUserDraft } from './bulk-users'
+import { validateBulkUsers, BULK_PASSWORD_MIN, type BulkUserDraft } from './bulk-users'
 
 export type CreateUserState =
   | { error: string }
@@ -50,7 +50,7 @@ export async function createUser(_prev: CreateUserState, formData: FormData): Pr
     const [user] = await db.insert(users).values({
       orgId: ctx.orgId, name: v.name.trim(), email: v.email.trim().toLowerCase(),
       designation: v.designation || null, departmentId: v.departmentId || null,
-      role: v.role, passwordHash,
+      role: v.role, passwordHash, mustChangePassword: true,
     }).returning()
 
     await audit(undefined, {
@@ -153,20 +153,28 @@ export async function generateResetLink(_prev: ResetLinkState, formData: FormDat
   return { ok: true, url: `/reset-password/${raw}` }
 }
 
-export type BulkCreatedUser = { name: string; email: string; temporaryPassword: string }
+export type BulkCreatedUser = { name: string; email: string }
 export type BulkFailedRow = { row: number; email: string; message: string }
 export type BulkCreateState =
   | { error: string }
-  | { ok: true; created: BulkCreatedUser[]; failed: BulkFailedRow[] }
+  | { ok: true; created: BulkCreatedUser[]; sharedPassword: string; failed: BulkFailedRow[] }
   | undefined
 
 /**
- * Creates many users at once. Rows are applied individually rather than in one
- * transaction: a single duplicate email should not discard the rest of the
- * batch, so every row reports its own outcome.
+ * Creates many users at once, all sharing one administrator-chosen temporary
+ * password. Every account is flagged to change it on first sign-in.
+ *
+ * Rows are applied individually rather than in one transaction: a single
+ * duplicate email should not discard the rest of the batch, so every row
+ * reports its own outcome.
  */
 export async function createUsersBulk(_prev: BulkCreateState, formData: FormData): Promise<BulkCreateState> {
   const ctx = await requireAdmin()
+
+  const sharedPassword = formData.get('sharedPassword')
+  if (typeof sharedPassword !== 'string' || sharedPassword.length < BULK_PASSWORD_MIN) {
+    return { error: `The shared password needs at least ${BULK_PASSWORD_MIN} characters.` }
+  }
 
   const raw = formData.get('users')
   if (typeof raw !== 'string') return { error: 'Nothing to add.' }
@@ -193,6 +201,10 @@ export async function createUsersBulk(_prev: BulkCreateState, formData: FormData
     .where(eq(departments.orgId, ctx.orgId))
   const allowed = new Set(orgDepartments.map((d) => d.id))
 
+  // One hash for the whole batch — the password is shared, and bcrypt is the
+  // expensive part of this request.
+  const passwordHash = await hashPassword(sharedPassword)
+
   const created: BulkCreatedUser[] = []
   const failed: BulkFailedRow[] = errors.map((e) => ({ row: e.index + 1, email: '', message: e.message }))
 
@@ -202,15 +214,12 @@ export async function createUsersBulk(_prev: BulkCreateState, formData: FormData
       continue
     }
 
-    const temporaryPassword = generatePassword()
-    const passwordHash = await hashPassword(temporaryPassword)
-
     try {
       const [user] = await db.insert(users).values({
         orgId: ctx.orgId, name: draft.name, email: draft.email,
         designation: draft.designation || null,
         departmentId: draft.departmentId || null,
-        role: draft.role, passwordHash,
+        role: draft.role, passwordHash, mustChangePassword: true,
       }).returning()
 
       await audit(undefined, {
@@ -218,12 +227,12 @@ export async function createUsersBulk(_prev: BulkCreateState, formData: FormData
         entityType: 'user', entityId: user.id,
         description: `User ${user.email} created (bulk)`,
       })
-      created.push({ name: user.name, email: user.email, temporaryPassword })
+      created.push({ name: user.name, email: user.email })
     } catch {
       failed.push({ row: index + 1, email: draft.email, message: 'A user with that email already exists.' })
     }
   }
 
   revalidatePath('/admin/users')
-  return { ok: true, created, failed: failed.sort((a, b) => a.row - b.row) }
+  return { ok: true, created, sharedPassword, failed: failed.sort((a, b) => a.row - b.row) }
 }

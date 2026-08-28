@@ -254,3 +254,23 @@ export function IconShield(props: SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+export function IconEye(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M1.6 8s2.4-4.3 6.4-4.3S14.4 8 14.4 8s-2.4 4.3-6.4 4.3S1.6 8 1.6 8z" />
+      <circle cx="8" cy="8" r="1.9" />
+    </svg>
+  );
+}
+
+export function IconEyeOff(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M6.4 4a6.6 6.6 0 0 1 1.6-.2c4 0 6.4 4.2 6.4 4.2a11 11 0 0 1-1.9 2.4" />
+      <path d="M4.1 5.2A11 11 0 0 0 1.6 8s2.4 4.3 6.4 4.3c1 0 1.9-.3 2.7-.7" />
+      <path d="M6.7 6.7a1.9 1.9 0 0 0 2.6 2.6" />
+      <path d="M2.6 2.6l10.8 10.8" />
+    </svg>
+  );
+}

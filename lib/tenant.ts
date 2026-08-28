@@ -21,9 +21,22 @@ export const getSession = cache(async (): Promise<TenantContext | null> => {
   return { orgId: user.orgId, user }
 })
 
-export async function requireSession(): Promise<TenantContext> {
+/** Where a user on an administrator-issued password is held until they pick
+ * their own. Exported so the gate and the page cannot drift apart. */
+export const CHANGE_PASSWORD_PATH = '/change-password'
+
+export async function requireSession(
+  opts?: {
+    /** Only the change-password screen itself sets this — every other caller
+     * must stay behind the gate, otherwise the redirect would loop. */
+    allowPendingPasswordChange?: boolean
+  },
+): Promise<TenantContext> {
   const ctx = await getSession()
   if (!ctx) redirect('/login')
+  if (ctx.user.mustChangePassword && !opts?.allowPendingPasswordChange) {
+    redirect(CHANGE_PASSWORD_PATH)
+  }
   return ctx
 }
 

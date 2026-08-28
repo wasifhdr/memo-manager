@@ -3,11 +3,12 @@
 import { useActionState, useMemo, useState } from 'react'
 import { createUsersBulk, type BulkCreateState } from './actions'
 import {
-  validateBulkUsers, emptyDraft, isBlankDraft, BULK_MAX_ROWS,
+  validateBulkUsers, emptyDraft, isBlankDraft, BULK_MAX_ROWS, BULK_PASSWORD_MIN,
   type BulkUserDraft, type BulkRole,
 } from './bulk-users'
 import { Button } from '@/components/ui/button'
-import { Input, Select, FieldError } from '@/components/ui/field'
+import { Input, Select, Label, FieldError } from '@/components/ui/field'
+import { PasswordInput } from '@/components/ui/password-input'
 import { ModalFormButton } from '@/components/ui/modal-form-button'
 import { Badge } from '@/components/ui/badge'
 import { IconClose } from '@/components/ui/icons'
@@ -29,6 +30,7 @@ export function BulkAddUsersButton({ departments }: { departments: Option[] }) {
 
 function BulkAddUsersForm({ departments, onDone }: { departments: Option[]; onDone: () => void }) {
   const [rows, setRows] = useState<BulkUserDraft[]>([emptyDraft()])
+  const [sharedPassword, setSharedPassword] = useState('')
   // Inline row errors only appear once a submit has been attempted, so the
   // form does not scold you for a half-typed email.
   const [attempted, setAttempted] = useState(false)
@@ -43,7 +45,16 @@ function BulkAddUsersForm({ departments, onDone }: { departments: Option[]; onDo
   }, [check])
 
   const done = state && 'ok' in state && state.ok
-  if (done) return <BulkResults created={state.created} failed={state.failed} onDone={onDone} />
+  if (done) {
+    return (
+      <BulkResults
+        created={state.created}
+        sharedPassword={state.sharedPassword}
+        failed={state.failed}
+        onDone={onDone}
+      />
+    )
+  }
 
   function update(i: number, patch: Partial<BulkUserDraft>) {
     setRows((r) => r.map((row, idx) => (idx === i ? { ...row, ...patch } : row)))
@@ -63,6 +74,25 @@ function BulkAddUsersForm({ departments, onDone }: { departments: Option[]; onDo
     >
       {/* only the rows worth submitting travel to the server */}
       <input type="hidden" name="users" value={JSON.stringify(check.valid.map((v) => v.draft))} />
+
+      <div className="sm:max-w-xs">
+        <Label htmlFor="sharedPassword" hint={`min. ${BULK_PASSWORD_MIN} characters`}>
+          Temporary password
+        </Label>
+        <PasswordInput
+          id="sharedPassword"
+          name="sharedPassword"
+          value={sharedPassword}
+          onChange={(e) => setSharedPassword(e.target.value)}
+          minLength={BULK_PASSWORD_MIN}
+          autoComplete="new-password"
+          placeholder="Shared by everyone in this batch"
+          required
+        />
+        <p className="mt-1.5 text-[0.75rem] text-(--color-ink)/60">
+          Everyone added here signs in with this once, then must choose their own.
+        </p>
+      </div>
 
       <div>
         <p className="mb-2 text-label uppercase text-(--color-ink)/60">Users</p>
@@ -144,11 +174,14 @@ function BulkAddUsersForm({ departments, onDone }: { departments: Option[]; onDo
 
       <div className="flex items-center justify-between gap-3">
         <p className="text-[0.75rem] text-(--color-ink)/60">
-          Each user gets their own temporary password, shown once after saving.
+          Everyone is prompted to set their own password when they first sign in.
         </p>
         <div className="flex shrink-0 gap-2">
           <Button type="button" variant="ghost" onClick={onDone}>Cancel</Button>
-          <Button type="submit" disabled={pending || check.valid.length === 0}>
+          <Button
+            type="submit"
+            disabled={pending || check.valid.length === 0 || sharedPassword.length < BULK_PASSWORD_MIN}
+          >
             {pending
               ? 'Adding…'
               : `Add ${check.valid.length || ''} user${check.valid.length === 1 ? '' : 's'}`.replace('  ', ' ')}
@@ -160,14 +193,15 @@ function BulkAddUsersForm({ departments, onDone }: { departments: Option[]; onDo
 }
 
 function BulkResults({
-  created, failed, onDone,
+  created, sharedPassword, failed, onDone,
 }: {
-  created: { name: string; email: string; temporaryPassword: string }[]
+  created: { name: string; email: string }[]
+  sharedPassword: string
   failed: { row: number; email: string; message: string }[]
   onDone: () => void
 }) {
   const [copied, setCopied] = useState(false)
-  const asText = created.map((c) => `${c.name}\t${c.email}\t${c.temporaryPassword}`).join('\n')
+  const asText = created.map((c) => `${c.name}\t${c.email}\t${sharedPassword}`).join('\n')
 
   async function copyAll() {
     try {
@@ -189,34 +223,43 @@ function BulkResults({
       </div>
 
       {created.length > 0 ? (
-        <div>
-          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-            <p className="text-[0.8125rem] text-(--color-ink)/70">
-              These passwords are shown once. Copy them before closing.
+        <>
+          <div className="rounded-[var(--radius-control)] border-2 border-(--color-gold-deep)/50 bg-(--color-gold)/10 p-3">
+            <p className="text-label uppercase text-(--color-gold-deep)">Temporary password</p>
+            <p className="mt-1 font-mono-nums text-lg font-bold text-(--color-ink)">{sharedPassword}</p>
+            <p className="mt-1 text-[0.75rem] text-(--color-ink)/70">
+              Share this with the people below. Each of them must choose their own password the first time they
+              sign in.
             </p>
-            <Button type="button" size="sm" variant="secondary" onClick={copyAll}>
-              {copied ? 'Copied' : 'Copy all'}
-            </Button>
           </div>
-          <div className="max-h-64 overflow-y-auto rounded-[var(--radius-control)] border border-(--color-sand)">
-            <table className="w-full border-collapse text-[0.8125rem]">
-              <thead>
-                <tr className="bg-(--color-cream)">
-                  <th className="px-3 py-2 text-left text-label uppercase text-(--color-ink)/60">Email</th>
-                  <th className="px-3 py-2 text-left text-label uppercase text-(--color-ink)/60">Temporary password</th>
-                </tr>
-              </thead>
-              <tbody>
-                {created.map((c) => (
-                  <tr key={c.email} className="border-t border-(--color-sand)">
-                    <td className="px-3 py-2 text-(--color-ink)">{c.email}</td>
-                    <td className="px-3 py-2 font-mono-nums text-(--color-ink)">{c.temporaryPassword}</td>
+
+          <div>
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+              <p className="text-label uppercase text-(--color-ink)/60">Accounts created</p>
+              <Button type="button" size="sm" variant="secondary" onClick={copyAll}>
+                {copied ? 'Copied' : 'Copy list'}
+              </Button>
+            </div>
+            <div className="max-h-56 overflow-y-auto rounded-[var(--radius-control)] border border-(--color-sand)">
+              <table className="w-full border-collapse text-[0.8125rem]">
+                <thead>
+                  <tr className="bg-(--color-cream)">
+                    <th className="px-3 py-2 text-left text-label uppercase text-(--color-ink)/60">Name</th>
+                    <th className="px-3 py-2 text-left text-label uppercase text-(--color-ink)/60">Email</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {created.map((c) => (
+                    <tr key={c.email} className="border-t border-(--color-sand)">
+                      <td className="px-3 py-2 text-(--color-ink)">{c.name}</td>
+                      <td className="px-3 py-2 text-(--color-ink)">{c.email}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+        </>
       ) : null}
 
       {failed.length > 0 ? (

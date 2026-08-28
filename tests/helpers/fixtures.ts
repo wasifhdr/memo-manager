@@ -32,6 +32,7 @@ async function mkUser(orgId: string, deptId: string, name: string, email: string
   return {
     id: u.id, orgId: u.orgId, name: u.name, email: u.email, role: u.role,
     status: u.status, departmentId: u.departmentId, designation: u.designation,
+    mustChangePassword: u.mustChangePassword,
   } satisfies SessionUser
 }
 

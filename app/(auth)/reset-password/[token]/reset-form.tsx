@@ -4,6 +4,7 @@ import { useActionState } from 'react'
 import { resetPasswordAction, type ActionState } from '@/app/(auth)/actions'
 import { Button } from '@/components/ui/button'
 import { Input, Label, FieldError } from '@/components/ui/field'
+import { PasswordInput } from '@/components/ui/password-input'
 
 export function ResetPasswordForm({ token }: { token: string }) {
   const [state, formAction, pending] = useActionState<ActionState, FormData>(
@@ -19,11 +20,11 @@ export function ResetPasswordForm({ token }: { token: string }) {
 
       <div className="mb-4">
         <Label htmlFor="password" hint="min. 10 characters">New password</Label>
-        <Input id="password" name="password" type="password" required minLength={10} autoComplete="new-password" autoFocus />
+        <PasswordInput id="password" name="password" required minLength={10} autoComplete="new-password" autoFocus />
       </div>
       <div className="mb-2">
         <Label htmlFor="confirm">Confirm password</Label>
-        <Input id="confirm" name="confirm" type="password" required minLength={10} autoComplete="new-password" />
+        <PasswordInput id="confirm" name="confirm" required minLength={10} autoComplete="new-password" />
       </div>
 
       <FieldError>{state?.error}</FieldError>

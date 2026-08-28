@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { registerOrganizationAction, type ActionState } from '@/app/(auth)/actions'
 import { Button } from '@/components/ui/button'
 import { Input, Label, FieldError } from '@/components/ui/field'
+import { PasswordInput } from '@/components/ui/password-input'
 
 export function RegisterForm() {
   const [state, formAction, pending] = useActionState<ActionState, FormData>(
@@ -52,7 +53,7 @@ export function RegisterForm() {
         </div>
         <div>
           <Label htmlFor="password" hint="min. 10 characters">Password</Label>
-          <Input id="password" name="password" type="password" required minLength={10} autoComplete="new-password" />
+          <PasswordInput id="password" name="password" required minLength={10} autoComplete="new-password" />
         </div>
       </fieldset>
 
