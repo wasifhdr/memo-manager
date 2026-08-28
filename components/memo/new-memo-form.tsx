@@ -33,12 +33,13 @@ function Section({ title, children }: { title: string; children: React.ReactNode
  * redirect to the memo, so there is no success state to handle here.
  */
 export function NewMemoForm({
-  departments, categories, activeUsers, templates, onCancel,
+  departments, categories, activeUsers, templates, designations, onCancel,
 }: {
   departments: Option[]
   categories: Option[]
   activeUsers: ActiveUser[]
   templates: Template[]
+  designations: string[]
   onCancel: () => void
 }) {
   const [state, formAction, pending] = useActionState<ActionState, FormData>(createMemoAction, undefined)
@@ -90,7 +91,10 @@ export function NewMemoForm({
       </div>
 
       <Section title="Workflow participants">
-        <ParticipantSteps steps={steps} onChange={setSteps} activeUsers={activeUsers} templates={templates} />
+        <ParticipantSteps
+          steps={steps} onChange={setSteps} activeUsers={activeUsers}
+          templates={templates} designations={designations}
+        />
         {steps.length === 0 ? (
           <p className="mt-1 text-[0.75rem] text-(--color-ink)/50">
             A draft can wait, but publishing needs at least one participant.

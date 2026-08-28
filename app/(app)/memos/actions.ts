@@ -13,7 +13,7 @@ import { getOwnedMemo, countAttachments } from '@/lib/repo/memo'
 import { sanitizeMemoHtml } from '@/lib/sanitize'
 import { nextMemoNumber } from '@/lib/memo-number'
 import { audit } from '@/lib/audit'
-import { submitMemo } from '@/lib/workflow'
+import { submitMemo, resubmitMemo } from '@/lib/workflow'
 import type { ActionState } from '@/app/(auth)/actions'
 import type { Priority, RequiredAction } from '@/db/schema'
 import { ATTACHMENT_MAX_BYTES, ATTACHMENT_MAX_PER_MEMO, ALLOWED_MIME } from '@/lib/attachment-limits'
@@ -166,45 +166,94 @@ export async function createMemoAction(_prev: ActionState, formData: FormData): 
   redirect(`/memos/${memoId}`)
 }
 
-const updateSchema = z.object({
+/**
+ * Saves an edit to a memo the caller owns and, when asked, publishes it in the
+ * same submission: a draft goes into the workflow, a memo with changes
+ * requested is resubmitted to whoever asked for them.
+ *
+ * The workflow queue can only be rewritten while the memo is still a draft.
+ * Once a cycle has run, its steps hold recorded decisions — including the
+ * change request the resubmission resumes at — so they are left alone here and
+ * re-routed from the memo page instead.
+ */
+const updateSchema = draftSchema.extend({
   id: z.string().uuid(),
-  subject: z.string().min(3).max(200),
-  bodyHtml: z.string().max(200_000),
-  departmentId: z.string().uuid().optional().or(z.literal('')),
-  categoryId: z.string().uuid().optional().or(z.literal('')),
-  priority: z.enum(['normal', 'high', 'urgent']),
+  publish: z.enum(['true', 'false']).optional().default('false'),
+  steps: z.string().optional().default('[]').transform((raw, ctx) => {
+    try {
+      return z.array(stepInput).parse(JSON.parse(raw))
+    } catch {
+      ctx.addIssue({ code: 'custom', message: 'Give every workflow participant a position and an assignee.' })
+      return z.NEVER
+    }
+  }),
 })
 
-export async function updateDraftAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+export async function updateMemoAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const ctx = await requireSession()
   const parsed = updateSchema.safeParse(Object.fromEntries(formData))
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Check the form and try again.' }
   const v = parsed.data
+  const publish = v.publish === 'true'
 
   const memo = await getOwnedMemo(ctx, v.id)
   if (!memo) return { error: 'Memo not found.' }
   if (memo.status !== 'draft' && memo.status !== 'changes_requested') {
     return { error: 'This memo can no longer be edited.' }
   }
+  const isDraft = memo.status === 'draft'
+  if (publish && isDraft && v.steps.length === 0) {
+    return { error: 'Add at least one workflow participant before publishing.' }
+  }
 
   try {
     await assertBelongsToOrg(ctx.orgId, v.departmentId || undefined, v.categoryId || undefined)
+
+    if (isDraft && v.steps.length > 0) {
+      const activeUsers = await db.select({ id: users.id }).from(users)
+        .where(and(eq(users.orgId, ctx.orgId), eq(users.status, 'active')))
+      const activeIds = new Set(activeUsers.map((u) => u.id))
+      if (!v.steps.every((s) => activeIds.has(s.assigneeUserId))) {
+        return { error: 'Every workflow participant must be an active user in your organization.' }
+      }
+    }
+
+    await db.transaction(async (tx) => {
+      await tx.update(memos).set({
+        subject: v.subject.trim(), bodyHtml: sanitizeMemoHtml(v.bodyHtml),
+        departmentId: v.departmentId || null, categoryId: v.categoryId || null,
+        priority: v.priority as Priority,
+      }).where(eq(memos.id, v.id))
+
+      if (isDraft && v.steps.length > 0) {
+        await tx.delete(workflowSteps).where(and(eq(workflowSteps.memoId, v.id), eq(workflowSteps.cycle, 1)))
+        await tx.insert(workflowSteps).values(v.steps.map((s, i) => ({
+          orgId: ctx.orgId, memoId: v.id, cycle: 1, stepNo: i + 1,
+          positionTitle: s.positionTitle, assigneeUserId: s.assigneeUserId,
+          requiredAction: s.requiredAction as RequiredAction,
+        })))
+      }
+
+      await audit(tx, {
+        orgId: ctx.orgId, actorId: ctx.user.id, eventType: 'memo_updated',
+        entityType: 'memo', entityId: v.id, description: `${memo.memoNumber} edited`,
+      })
+    })
   } catch (e) {
-    return { error: e instanceof Error ? e.message : 'Invalid request.' }
+    return { error: e instanceof Error ? e.message : 'Could not save the memo.' }
   }
 
-  await db.update(memos).set({
-    subject: v.subject.trim(), bodyHtml: sanitizeMemoHtml(v.bodyHtml),
-    departmentId: v.departmentId || null, categoryId: v.categoryId || null,
-    priority: v.priority as Priority,
-  }).where(eq(memos.id, v.id))
+  if (publish) {
+    const result = isDraft ? await submitMemo(ctx, v.id) : await resubmitMemo(ctx, v.id)
+    // The edit is saved either way; the memo can still be published from its page.
+    if (!result.ok) return { error: result.error }
+  }
 
-  await audit(undefined, {
-    orgId: ctx.orgId, actorId: ctx.user.id, eventType: 'memo_updated',
-    entityType: 'memo', entityId: v.id, description: `${memo.memoNumber} edited`,
-  })
-  revalidatePath(`/memos/${v.id}/edit`)
-  return { ok: true }
+  revalidatePath(`/memos/${v.id}`)
+  revalidatePath('/memos')
+  revalidatePath('/inbox')
+  revalidatePath('/dashboard')
+  redirect(`/memos/${v.id}`)
 }
 
 const idSchema = z.object({ id: z.string().uuid() })
@@ -224,55 +273,6 @@ export async function deleteDraftAction(_prev: ActionState, formData: FormData):
     entityType: 'memo', entityId: memo.id, description: `Draft ${memo.memoNumber} deleted`,
   })
   redirect('/memos')
-}
-
-const setParticipantsSchema = z.object({
-  id: z.string().uuid(),
-  steps: z.string().transform((s, ctx) => {
-    try {
-      return z.array(stepInput).min(1, 'Add at least one workflow participant.').parse(JSON.parse(s))
-    } catch {
-      ctx.addIssue({ code: 'custom', message: 'Invalid workflow steps.' })
-      return z.NEVER
-    }
-  }),
-})
-
-export async function setParticipantsAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  const ctx = await requireSession()
-  const parsed = setParticipantsSchema.safeParse(Object.fromEntries(formData))
-  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Check the workflow and try again.' }
-  const { id: memoId, steps } = parsed.data
-
-  const memo = await getOwnedMemo(ctx, memoId)
-  if (!memo) return { error: 'Memo not found.' }
-  if (memo.status !== 'draft' && memo.status !== 'changes_requested') {
-    return { error: 'This memo can no longer be edited.' }
-  }
-
-  const assigneeIds = [...new Set(steps.map((s) => s.assigneeUserId))]
-  const activeUsers = await db.select({ id: users.id }).from(users)
-    .where(and(eq(users.orgId, ctx.orgId), eq(users.status, 'active')))
-  const activeIds = new Set(activeUsers.map((u) => u.id))
-  if (!assigneeIds.every((id) => activeIds.has(id))) {
-    return { error: 'Every workflow participant must be an active user in your organization.' }
-  }
-
-  await db.transaction(async (tx) => {
-    await tx.delete(workflowSteps).where(and(eq(workflowSteps.memoId, memoId), eq(workflowSteps.cycle, 1)))
-    await tx.insert(workflowSteps).values(steps.map((s, i) => ({
-      orgId: ctx.orgId, memoId, cycle: 1, stepNo: i + 1,
-      positionTitle: s.positionTitle, assigneeUserId: s.assigneeUserId,
-      requiredAction: s.requiredAction as RequiredAction,
-    })))
-  })
-
-  await audit(undefined, {
-    orgId: ctx.orgId, actorId: ctx.user.id, eventType: 'participant_assigned',
-    entityType: 'memo', entityId: memoId, description: `Workflow participants set (${steps.length} steps)`,
-  })
-  revalidatePath(`/memos/${memoId}/edit`)
-  return { ok: true }
 }
 
 function sanitizeFilename(name: string): string {
@@ -323,7 +323,7 @@ export async function uploadAttachmentAction(_prev: ActionState, formData: FormD
     orgId: ctx.orgId, actorId: ctx.user.id, eventType: 'attachment_upload',
     entityType: 'memo', entityId: memoId, description: `Attachment "${filename}" uploaded to ${memo.memoNumber}`,
   })
-  revalidatePath(`/memos/${memoId}/edit`)
+  revalidatePath(`/memos/${memoId}`)
   return { ok: true }
 }
 
@@ -357,6 +357,6 @@ export async function deleteAttachmentAction(_prev: ActionState, formData: FormD
     orgId: ctx.orgId, actorId: ctx.user.id, eventType: 'attachment_delete',
     entityType: 'memo', entityId: parsed.data.memoId, description: `Attachment "${deleted.filename}" removed`,
   })
-  revalidatePath(`/memos/${parsed.data.memoId}/edit`)
+  revalidatePath(`/memos/${parsed.data.memoId}`)
   return { ok: true }
 }

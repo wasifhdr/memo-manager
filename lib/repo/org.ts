@@ -44,6 +44,34 @@ export async function listActiveUsers(ctx: TenantContext) {
     .orderBy(asc(users.name))
 }
 
+/**
+ * Every designation in use across the organization, for the position pickers
+ * in workflows and templates.
+ *
+ * Designations are compared case-insensitively — "team lead" and "Team Lead"
+ * are one entry — and the spelling shown is the one most people are recorded
+ * with, so the list follows whatever convention the organization actually uses.
+ */
+export async function listDesignations(ctx: TenantContext): Promise<string[]> {
+  const rows = await db.select({ designation: users.designation }).from(users)
+    .where(eq(users.orgId, ctx.orgId))
+
+  const spellings = new Map<string, Map<string, number>>()
+  for (const { designation } of rows) {
+    const label = designation?.trim()
+    if (!label) continue
+    const key = label.toLowerCase()
+    const counts = spellings.get(key) ?? new Map<string, number>()
+    counts.set(label, (counts.get(label) ?? 0) + 1)
+    spellings.set(key, counts)
+  }
+
+  return [...spellings.values()]
+    .map((counts) => [...counts.entries()]
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0][0])
+    .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
+}
+
 export async function listTemplates(ctx: TenantContext, opts?: { activeOnly?: boolean }) {
   return db.select().from(workflowTemplates).where(
     opts?.activeOnly

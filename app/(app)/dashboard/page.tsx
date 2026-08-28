@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { requireSession } from '@/lib/tenant'
-import { listDepartments, listCategories, listActiveUsers, listTemplatesWithSteps } from '@/lib/repo/org'
+import {
+  listDepartments, listCategories, listActiveUsers, listTemplatesWithSteps, listDesignations,
+} from '@/lib/repo/org'
 import { userDashboard } from '@/lib/repo/stats'
 import { PageHeader } from '@/components/ui/page-header'
 import { NewMemoButton } from '@/components/memo/new-memo-button'
@@ -16,11 +18,12 @@ export default async function DashboardPage() {
   const ctx = await requireSession()
   // One batch, not two: the New memo modal's lists do not depend on the
   // dashboard figures.
-  const [departments, categories, activeUsers, templates, d] = await Promise.all([
+  const [departments, categories, activeUsers, templates, designations, d] = await Promise.all([
     listDepartments(ctx, { activeOnly: true }),
     listCategories(ctx, { activeOnly: true }),
     listActiveUsers(ctx),
     listTemplatesWithSteps(ctx),
+    listDesignations(ctx),
     userDashboard(ctx),
   ])
   const departmentOptions = departments.map((dep) => ({ value: dep.id, label: dep.name }))
@@ -36,6 +39,7 @@ export default async function DashboardPage() {
             categories={categoryOptions}
             activeUsers={activeUsers}
             templates={templates}
+            designations={designations}
           />
         }
       />

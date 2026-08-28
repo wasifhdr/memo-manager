@@ -16,11 +16,13 @@ export function NewMemoButton({
   categories,
   activeUsers,
   templates,
+  designations,
 }: {
   departments: Option[]
   categories: Option[]
   activeUsers: ActiveUser[]
   templates: Template[]
+  designations: string[]
 }) {
   return (
     <ModalFormButton label="New memo" title="New memo" size="xl">
@@ -30,6 +32,7 @@ export function NewMemoButton({
           categories={categories}
           activeUsers={activeUsers}
           templates={templates}
+          designations={designations}
           onCancel={close}
         />
       )}

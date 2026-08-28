@@ -17,7 +17,7 @@ type Template = {
   steps: { positionTitle: string; requiredAction: RequiredAction }[]
 }
 
-export function TemplateCard({ template }: { template: Template }) {
+export function TemplateCard({ template, designations }: { template: Template; designations: string[] }) {
   const [editing, setEditing] = useState(false)
   const [, toggleAction, togglePending] = useActionState<ActionState, FormData>(setTemplateActive, undefined)
 
@@ -44,7 +44,7 @@ export function TemplateCard({ template }: { template: Template }) {
       </CardHeader>
       <CardBody>
         {editing ? (
-          <TemplateForm mode="edit" template={template} onDone={() => setEditing(false)} />
+          <TemplateForm mode="edit" template={template} designations={designations} onDone={() => setEditing(false)} />
         ) : (
           <ol className="flex flex-wrap items-center gap-2 text-[0.8125rem] text-(--color-ink)/70">
             {template.steps.map((s, i) => (

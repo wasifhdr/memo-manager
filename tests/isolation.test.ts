@@ -7,9 +7,13 @@ import { listDepartments, listUsers, listCategories, listTemplates } from '@/lib
 import { listAudit } from '@/lib/repo/audit'
 import { memoReport } from '@/lib/repo/reports'
 import { getMemoAccess } from '@/lib/authz'
-import { submitMemo, actOnMemo, resubmitMemo, cancelMemo } from '@/lib/workflow'
+import {
+  submitMemo, actOnMemo, resubmitMemo, cancelMemo,
+  reassignStep, addParticipant, removeParticipant,
+} from '@/lib/workflow'
 import { db } from '@/lib/db'
-import { memoAttachments } from '@/db/schema'
+import { memoAttachments, workflowSteps } from '@/db/schema'
+import { and, eq } from 'drizzle-orm'
 
 let f: OrgFixture
 beforeEach(async () => { await resetDb(); f = await makeOrgFixture() })
@@ -70,6 +74,27 @@ describe('cross-tenant writes are refused, never applied', () => {
     expect((await actOnMemo(f.otherOrgCtx, f.memoId, 'approve', null)).ok).toBe(false)
     expect((await resubmitMemo(f.otherOrgCtx, f.memoId)).ok).toBe(false)
     expect((await cancelMemo(f.otherOrgCtx, f.memoId, 'x')).ok).toBe(false)
+
+    const [step] = await db.select().from(workflowSteps)
+      .where(and(eq(workflowSteps.memoId, f.memoId), eq(workflowSteps.stepNo, 1)))
+    expect((await reassignStep(f.otherOrgCtx, f.memoId, step.id, f.otherOrgUser.id, null, null)).ok).toBe(false)
+    expect((await removeParticipant(f.otherOrgCtx, f.memoId, step.id)).ok).toBe(false)
+    expect((await addParticipant(f.otherOrgCtx, f.memoId, {
+      afterStepNo: 1, userId: f.otherOrgUser.id, positionTitle: null,
+    })).ok).toBe(false)
+  })
+
+  it('refuses to route a memo to a user in another organization', async () => {
+    await submitMemo(f.authorCtx, f.memoId)
+    const [step] = await db.select().from(workflowSteps)
+      .where(and(eq(workflowSteps.memoId, f.memoId), eq(workflowSteps.stepNo, 1)))
+
+    expect((await reassignStep(f.deptHeadCtx, f.memoId, step.id, f.otherOrgUser.id, null, null)).ok).toBe(false)
+    expect((await addParticipant(f.authorCtx, f.memoId, {
+      afterStepNo: 1, userId: f.otherOrgUser.id, positionTitle: null,
+    })).ok).toBe(false)
+    expect((await actOnMemo(f.deptHeadCtx, f.memoId, 'approve', null,
+      { userId: f.otherOrgUser.id, positionTitle: null })).ok).toBe(false)
   })
 
   it('every workflow mutation fails for an outsider in the same organization', async () => {

@@ -95,7 +95,8 @@ export async function getMemoDetail(ctx: TenantContext, memoId: string) {
   const [memo] = await db.select({
     id: memos.id, memoNumber: memos.memoNumber, subject: memos.subject, bodyHtml: memos.bodyHtml,
     authorId: memos.authorId, authorName: author.name,
-    departmentName: departments.name, categoryName: memoCategories.name,
+    departmentId: memos.departmentId, departmentName: departments.name,
+    categoryId: memos.categoryId, categoryName: memoCategories.name,
     priority: memos.priority, status: memos.status,
     currentCycle: memos.currentCycle, currentStepNo: memos.currentStepNo, currentVersion: memos.currentVersion,
     submittedAt: memos.submittedAt, completedAt: memos.completedAt, cancelledAt: memos.cancelledAt,

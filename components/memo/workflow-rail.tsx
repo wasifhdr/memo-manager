@@ -41,6 +41,9 @@ function StepIcon({ outcome, isCurrent }: { outcome: StepOutcome; isCurrent: boo
 
 function StepCard({ step, isCurrent }: { step: RailStep; isCurrent: boolean }) {
   const meta = OUTCOME_META[step.outcome]
+  // A skipped step with an actor was taken out of the queue by someone; one
+  // without is a step the workflow never reached, after a rejection.
+  const label = step.outcome === 'skipped' && step.actedAt ? 'Removed' : meta.label
   const base = 'flex-1 min-w-0 rounded-[var(--radius-control)] px-3.5 py-3 transition-colors'
   const toneClass = isCurrent
     ? 'border-2 border-(--color-orange-deep) bg-(--color-orange)/10 shadow-offset-sm'
@@ -60,7 +63,7 @@ function StepCard({ step, isCurrent }: { step: RailStep; isCurrent: boolean }) {
           </p>
           <p className="truncate text-[0.75rem] text-(--color-ink)/70">{step.assigneeName}</p>
           <p className="mt-1 text-label uppercase text-(--color-ink)/50">
-            {isCurrent ? 'Awaiting their decision' : meta.label}
+            {isCurrent ? 'Awaiting their decision' : label}
           </p>
           {step.outcome !== 'pending' && step.actedAt ? (
             <p className="mt-1 text-[0.6875rem] text-(--color-ink)/50">

@@ -1,11 +1,8 @@
 'use client'
 
-import { useActionState, useEffect, useId, useRef, useState, type ReactNode } from 'react'
-import { setParticipantsAction } from '@/app/(app)/memos/actions'
-import type { ActionState } from '@/app/(auth)/actions'
+import { useId, useState, type ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
-import { Select, Input, FieldError } from '@/components/ui/field'
-import { useToast } from '@/components/ui/toast'
+import { Select, Input } from '@/components/ui/field'
 import type { RequiredAction } from '@/db/schema'
 
 export type Step = { assigneeUserId: string; positionTitle: string; requiredAction: RequiredAction }
@@ -17,24 +14,48 @@ export function stepsAreComplete(steps: Step[]): boolean {
 }
 
 /**
- * The ordered list of participants, as controlled state. Used both by the
- * New memo modal (where the steps are saved with the memo itself) and by
- * `ParticipantPicker` below (where they are saved on their own).
+ * Who can fill a step carrying this position: the people whose designation
+ * matches it, compared case-insensitively. A blank position means the position
+ * has not been decided yet, so anyone in the organization is available.
+ *
+ * `keepId` keeps an already-chosen person in the list even when they no longer
+ * match, so an existing assignment never vanishes from the field.
+ */
+export function peopleForPosition(
+  users: ActiveUser[], position: string, keepId?: string,
+): ActiveUser[] {
+  const wanted = position.trim().toLowerCase()
+  if (!wanted) return users
+  const matches = users.filter((u) => (u.designation ?? '').trim().toLowerCase() === wanted)
+  if (keepId && !matches.some((u) => u.id === keepId)) {
+    const kept = users.find((u) => u.id === keepId)
+    if (kept) return [...matches, kept]
+  }
+  return matches
+}
+
+function userOptionsOf(users: ActiveUser[]) {
+  return users.map((u) => ({ value: u.id, label: u.designation ? `${u.name} — ${u.designation}` : u.name }))
+}
+
+/**
+ * The ordered list of participants, as controlled state. Used by the New memo
+ * and Edit memo modals, which save the steps together with the memo itself.
  */
 export function ParticipantSteps({
-  steps, onChange, activeUsers, templates, action,
+  steps, onChange, activeUsers, templates, designations, action,
 }: {
   steps: Step[]
   onChange: (steps: Step[]) => void
   activeUsers: ActiveUser[]
   templates: Template[]
+  /** The organization's designations, offered as position titles. */
+  designations: string[]
   /** Rendered opposite "Add participant" — e.g. a save button. */
   action?: ReactNode
 }) {
   const [templateId, setTemplateId] = useState('')
   const fieldId = useId()
-
-  const userOptions = activeUsers.map((u) => ({ value: u.id, label: u.designation ? `${u.name} — ${u.designation}` : u.name }))
 
   function applyTemplate(id: string) {
     setTemplateId(id)
@@ -52,6 +73,14 @@ export function ParticipantSteps({
   }
   function update(i: number, patch: Partial<Step>) {
     onChange(steps.map((step, idx) => (idx === i ? { ...step, ...patch } : step)))
+  }
+
+  /** Changing the position narrows the people; anyone who no longer fits is dropped. */
+  function setPosition(i: number, positionTitle: string) {
+    const step = steps[i]
+    const stillFits = peopleForPosition(activeUsers, positionTitle)
+      .some((u) => u.id === step.assigneeUserId)
+    update(i, { positionTitle, assigneeUserId: stillFits ? step.assigneeUserId : '' })
   }
 
   return (
@@ -78,17 +107,21 @@ export function ParticipantSteps({
             <span className="flex size-6 shrink-0 items-center justify-center rounded-[var(--radius-pill)] bg-(--color-cream) font-mono-nums text-[0.75rem] font-bold text-(--color-ink)/70">
               {i + 1}
             </span>
-            <Input
+            <PositionField
               value={step.positionTitle}
-              onChange={(e) => update(i, { positionTitle: e.target.value })}
-              placeholder="Position (e.g. Department Head)"
-              className="h-9 w-44"
+              onChange={(positionTitle) => setPosition(i, positionTitle)}
+              designations={designations}
+              className="h-9 w-52"
             />
             <Select
               value={step.assigneeUserId}
               onChange={(e) => update(i, { assigneeUserId: e.target.value })}
-              placeholder="Assign to…"
-              options={userOptions}
+              placeholder={
+                step.positionTitle.trim() && peopleForPosition(activeUsers, step.positionTitle).length === 0
+                  ? 'Nobody holds this position'
+                  : 'Assign to…'
+              }
+              options={userOptionsOf(peopleForPosition(activeUsers, step.positionTitle, step.assigneeUserId))}
               className="h-9 max-w-[20rem] flex-1"
             />
             <div className="ml-auto flex shrink-0 gap-1">
@@ -116,43 +149,48 @@ export function ParticipantSteps({
   )
 }
 
-/** The standalone editor on the memo edit page: same list, saved on its own. */
-export function ParticipantPicker({
-  memoId, activeUsers, templates, initialSteps,
+/**
+ * Position titles come from the designations the organization's own users
+ * carry. An organization that has not filled any in falls back to free text,
+ * so a workflow can still be built on day one.
+ */
+export function PositionField({
+  value, onChange, designations, className = '', placeholder = 'Position…', ariaLabel,
 }: {
-  memoId: string
-  activeUsers: ActiveUser[]
-  templates: Template[]
-  initialSteps: Step[]
+  value: string
+  onChange: (value: string) => void
+  designations: string[]
+  className?: string
+  placeholder?: string
+  ariaLabel?: string
 }) {
-  const [steps, setSteps] = useState<Step[]>(initialSteps)
-  const toast = useToast()
-
-  const [state, formAction, pending] = useActionState<ActionState, FormData>(setParticipantsAction, undefined)
-  const last = useRef<ActionState>(undefined)
-  useEffect(() => {
-    if (state && state !== last.current && state.ok) toast.success('Workflow participants saved.')
-    last.current = state
-  }, [state, toast])
+  if (designations.length === 0) {
+    return (
+      <Input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        aria-label={ariaLabel}
+        className={className}
+      />
+    )
+  }
+  // Designations match case-insensitively, so a step saved as "team lead"
+  // selects the organization's "Team Lead" entry. A title that matches nothing
+  // — an older custom one — is kept as its own option rather than silently
+  // disappearing from the field.
+  const trimmed = value.trim()
+  const canonical = designations.find((d) => d.toLowerCase() === trimmed.toLowerCase())
+  const options = [...designations, ...(trimmed && !canonical ? [trimmed] : [])]
 
   return (
-    <div>
-      <ParticipantSteps
-        steps={steps}
-        onChange={setSteps}
-        activeUsers={activeUsers}
-        templates={templates}
-        action={
-          <form action={formAction}>
-            <input type="hidden" name="id" value={memoId} />
-            <input type="hidden" name="steps" value={JSON.stringify(steps)} />
-            <Button type="submit" size="sm" disabled={pending || !stepsAreComplete(steps)}>
-              {pending ? 'Saving…' : 'Save workflow'}
-            </Button>
-          </form>
-        }
-      />
-      <FieldError>{state && 'error' in state ? state.error : undefined}</FieldError>
-    </div>
+    <Select
+      value={canonical ?? trimmed}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      options={options.map((d) => ({ value: d, label: d }))}
+      aria-label={ariaLabel}
+      className={className}
+    />
   )
 }

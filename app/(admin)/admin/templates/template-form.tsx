@@ -4,16 +4,19 @@ import { useActionState, useState } from 'react'
 import { createTemplate, updateTemplate } from './actions'
 import type { ActionState } from '@/app/(auth)/actions'
 import { Button } from '@/components/ui/button'
-import { Input, Select, FieldError } from '@/components/ui/field'
+import { PositionField } from '@/components/memo/participant-picker'
+import { Input, FieldError } from '@/components/ui/field'
 import type { RequiredAction } from '@/db/schema'
 
 type Step = { positionTitle: string; requiredAction: RequiredAction }
 
 export function TemplateForm({
-  mode, template, onDone,
+  mode, template, designations, onDone,
 }: {
   mode: 'create' | 'edit'
   template?: { id: string; name: string; description: string | null; steps: Step[] }
+  /** The organization's designations, offered as position titles. */
+  designations: string[]
   onDone?: () => void
 }) {
   const [name, setName] = useState(template?.name ?? '')
@@ -65,10 +68,12 @@ export function TemplateForm({
             <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-(--color-cream) font-mono-nums text-[0.75rem] font-semibold text-(--color-ink)/70">
               {i + 1}
             </span>
-            <Input
+            <PositionField
               value={step.positionTitle}
-              onChange={(e) => update(i, { positionTitle: e.target.value })}
-              placeholder="Position title (e.g. Department Head)"
+              onChange={(positionTitle) => update(i, { positionTitle })}
+              designations={designations}
+              placeholder="Position title…"
+              ariaLabel={`Position for step ${i + 1}`}
               className="h-9 flex-1"
             />
             <div className="flex shrink-0 gap-1">

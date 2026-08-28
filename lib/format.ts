@@ -16,6 +16,12 @@ export function formatDate(date: Date | string | null): string {
   return new Date(date).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
+/** "7:01 PM" — the clock half of a timestamp, when the date is written separately. */
+export function formatTimeOfDay(date: Date | string | null): string {
+  if (!date) return '—'
+  return new Date(date).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
+}
+
 export function formatDateTime(date: Date | string | null): string {
   if (!date) return '—'
   return new Date(date).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })

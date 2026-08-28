@@ -148,7 +148,6 @@ export function CommentThread({
               </svg>
             </button>
           </div>
-          <p className="text-[0.6875rem] text-(--color-ink)/45">Enter sends · Shift + Enter adds a line</p>
           <FieldError>{state && 'error' in state ? state.error : undefined}</FieldError>
         </form>
       ) : null}

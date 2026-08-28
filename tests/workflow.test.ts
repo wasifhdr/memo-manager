@@ -3,7 +3,10 @@ import { resetDb } from './helpers/db'
 import { db } from '@/lib/db'
 import { memos, workflowSteps, memoEvents, notifications } from '@/db/schema'
 import { and, eq, asc } from 'drizzle-orm'
-import { submitMemo, actOnMemo, resubmitMemo, cancelMemo } from '@/lib/workflow'
+import {
+  submitMemo, actOnMemo, resubmitMemo, cancelMemo,
+  reassignStep, addParticipant, removeParticipant,
+} from '@/lib/workflow'
 import { makeOrgFixture, type OrgFixture } from './helpers/fixtures'
 
 let f: OrgFixture
@@ -252,5 +255,189 @@ describe('cancellation', () => {
     await submitMemo(f.authorCtx, f.memoId)
     const r = await cancelMemo(f.outsiderCtx, f.memoId, 'mischief')
     expect(r.ok).toBe(false)
+  })
+})
+
+describe('re-routing while the memo is in flight', () => {
+  beforeEach(async () => { await submitMemo(f.authorCtx, f.memoId) })
+
+  async function stepsOf(memoId: string, cycle = 1) {
+    return db.select().from(workflowSteps)
+      .where(and(eq(workflowSteps.memoId, memoId), eq(workflowSteps.cycle, cycle)))
+      .orderBy(asc(workflowSteps.stepNo))
+  }
+
+  it('approve-and-forward slots the newcomer in before the original next step', async () => {
+    const r = await actOnMemo(f.deptHeadCtx, f.memoId, 'approve', null,
+      { userId: f.outsider.id, positionTitle: 'Legal' })
+    expect(r.ok).toBe(true)
+
+    const steps = await stepsOf(f.memoId)
+    expect(steps.map((s) => s.assigneeUserId)).toEqual([
+      f.deptHead.id, f.outsider.id, f.finance.id, f.director.id,
+    ])
+    expect(steps.map((s) => s.stepNo)).toEqual([1, 2, 3, 4])
+
+    const [m] = await db.select().from(memos).where(eq(memos.id, f.memoId))
+    expect(m.currentStepNo).toBe(2)                  // sitting with the newcomer
+
+    const notes = await db.select().from(notifications)
+      .where(eq(notifications.userId, f.outsider.id))
+    expect(notes.some((n) => n.type === 'action_required')).toBe(true)
+  })
+
+  it('the forwarded person hands it back to the original queue on approval', async () => {
+    await actOnMemo(f.deptHeadCtx, f.memoId, 'approve', null, { userId: f.outsider.id, positionTitle: 'Legal' })
+    const r = await actOnMemo(f.outsiderCtx, f.memoId, 'approve', null)
+    expect(r.ok).toBe(true)
+
+    const [m] = await db.select().from(memos).where(eq(memos.id, f.memoId))
+    const steps = await stepsOf(f.memoId)
+    expect(steps.find((s) => s.stepNo === m.currentStepNo)?.assigneeUserId).toBe(f.finance.id)
+  })
+
+  it('the forwarded person can re-route in turn', async () => {
+    await actOnMemo(f.deptHeadCtx, f.memoId, 'approve', null, { userId: f.outsider.id, positionTitle: 'Legal' })
+    const steps = await stepsOf(f.memoId)
+    const director = steps.find((s) => s.assigneeUserId === f.director.id)!
+
+    expect((await removeParticipant(f.outsiderCtx, f.memoId, director.id)).ok).toBe(true)
+    const after = await stepsOf(f.memoId)
+    expect(after.find((s) => s.id === director.id)?.outcome).toBe('skipped')
+  })
+
+  it('refuses to forward to someone already waiting in the queue', async () => {
+    const r = await actOnMemo(f.deptHeadCtx, f.memoId, 'approve', null,
+      { userId: f.director.id, positionTitle: null })
+    expect(r.ok).toBe(false)
+    const steps = await stepsOf(f.memoId)
+    expect(steps).toHaveLength(3)                    // nothing was written
+    expect(steps[0].outcome).toBe('pending')
+  })
+
+  it('declining hands the seat over without recording a decision', async () => {
+    const steps = await stepsOf(f.memoId)
+    const mine = steps[0]
+    const r = await reassignStep(f.deptHeadCtx, f.memoId, mine.id, f.outsider.id, 'Acting Head', 'Not my call')
+    expect(r.ok).toBe(true)
+
+    const after = await stepsOf(f.memoId)
+    expect(after[0].assigneeUserId).toBe(f.outsider.id)
+    expect(after[0].positionTitle).toBe('Acting Head')
+    expect(after[0].outcome).toBe('pending')         // no decision was made
+    const [m] = await db.select().from(memos).where(eq(memos.id, f.memoId))
+    expect(m.currentStepNo).toBe(1)
+    expect(m.status).toBe('pending_approval')
+  })
+
+  it('lets the replacement act, and refuses the person who handed over', async () => {
+    const steps = await stepsOf(f.memoId)
+    await reassignStep(f.deptHeadCtx, f.memoId, steps[0].id, f.outsider.id, null, null)
+
+    expect((await actOnMemo(f.deptHeadCtx, f.memoId, 'approve', null)).ok).toBe(false)
+    expect((await actOnMemo(f.outsiderCtx, f.memoId, 'approve', null)).ok).toBe(true)
+  })
+
+  it('the author may reassign the seat holding the memo; a bystander may not', async () => {
+    const steps = await stepsOf(f.memoId)
+    expect((await reassignStep(f.outsiderCtx, f.memoId, steps[0].id, f.delegate.id, null, null)).ok).toBe(false)
+    expect((await reassignStep(f.authorCtx, f.memoId, steps[0].id, f.delegate.id, null, null)).ok).toBe(true)
+    const after = await stepsOf(f.memoId)
+    expect(after[0].assigneeUserId).toBe(f.delegate.id)
+  })
+
+  it('a participant may only hand over the seat they are holding', async () => {
+    const steps = await stepsOf(f.memoId)
+    const director = steps.find((s) => s.assigneeUserId === f.director.id)!
+    const r = await reassignStep(f.deptHeadCtx, f.memoId, director.id, f.outsider.id, null, null)
+    expect(r.ok).toBe(false)
+  })
+
+  it('adds a participant after a chosen step and renumbers the tail', async () => {
+    const r = await addParticipant(f.authorCtx, f.memoId, {
+      afterStepNo: 2, userId: f.outsider.id, positionTitle: 'Registrar',
+    })
+    expect(r.ok).toBe(true)
+
+    const steps = await stepsOf(f.memoId)
+    expect(steps.map((s) => s.stepNo)).toEqual([1, 2, 3, 4])
+    expect(steps.map((s) => s.assigneeUserId)).toEqual([
+      f.deptHead.id, f.finance.id, f.outsider.id, f.director.id,
+    ])
+  })
+
+  it('refuses to add someone before the step holding the memo', async () => {
+    const r = await addParticipant(f.authorCtx, f.memoId, {
+      afterStepNo: 0, userId: f.outsider.id, positionTitle: null,
+    })
+    expect(r.ok).toBe(false)
+  })
+
+  it('removing keeps the row as skipped and names who took them out', async () => {
+    const steps = await stepsOf(f.memoId)
+    const finance = steps.find((s) => s.assigneeUserId === f.finance.id)!
+    expect((await removeParticipant(f.deptHeadCtx, f.memoId, finance.id)).ok).toBe(true)
+
+    const after = await stepsOf(f.memoId)
+    const removed = after.find((s) => s.id === finance.id)!
+    expect(removed.outcome).toBe('skipped')
+    expect(removed.actedByUserId).toBe(f.deptHead.id)
+    expect(after).toHaveLength(3)                    // the row is kept, not deleted
+  })
+
+  it('a removed participant is skipped over when the memo advances', async () => {
+    const steps = await stepsOf(f.memoId)
+    const finance = steps.find((s) => s.assigneeUserId === f.finance.id)!
+    await removeParticipant(f.deptHeadCtx, f.memoId, finance.id)
+    await actOnMemo(f.deptHeadCtx, f.memoId, 'approve', null)
+
+    const [m] = await db.select().from(memos).where(eq(memos.id, f.memoId))
+    const after = await stepsOf(f.memoId)
+    expect(after.find((s) => s.stepNo === m.currentStepNo)?.assigneeUserId).toBe(f.director.id)
+  })
+
+  it('refuses to remove the step holding the memo, or one that already acted', async () => {
+    const steps = await stepsOf(f.memoId)
+    expect((await removeParticipant(f.deptHeadCtx, f.memoId, steps[0].id)).ok).toBe(false)
+
+    await actOnMemo(f.deptHeadCtx, f.memoId, 'approve', null)   // step 1 decided
+    expect((await removeParticipant(f.financeCtx, f.memoId, steps[0].id)).ok).toBe(false)
+  })
+
+  it('leaves at least one participant to decide', async () => {
+    const steps = await stepsOf(f.memoId)
+    const finance = steps.find((s) => s.assigneeUserId === f.finance.id)!
+    const director = steps.find((s) => s.assigneeUserId === f.director.id)!
+    await removeParticipant(f.deptHeadCtx, f.memoId, finance.id)
+    await removeParticipant(f.deptHeadCtx, f.memoId, director.id)
+
+    // Only the seat holding the memo is left, and it cannot be removed.
+    expect((await removeParticipant(f.deptHeadCtx, f.memoId, steps[0].id)).ok).toBe(false)
+    expect((await actOnMemo(f.deptHeadCtx, f.memoId, 'approve', null)).ok).toBe(true)
+    expect(await statusOf(f.memoId)).toBe('approved')
+  })
+
+  it('refuses re-routing once the memo is no longer waiting on anyone', async () => {
+    const steps = await stepsOf(f.memoId)
+    await actOnMemo(f.deptHeadCtx, f.memoId, 'request_changes', 'Rework')
+    expect((await removeParticipant(f.authorCtx, f.memoId, steps[1].id)).ok).toBe(false)
+    expect((await addParticipant(f.authorCtx, f.memoId, {
+      afterStepNo: 1, userId: f.outsider.id, positionTitle: null,
+    })).ok).toBe(false)
+  })
+
+  it('a removed participant does not come back in the next cycle', async () => {
+    const steps = await stepsOf(f.memoId)
+    const finance = steps.find((s) => s.assigneeUserId === f.finance.id)!
+    await removeParticipant(f.deptHeadCtx, f.memoId, finance.id)
+    await actOnMemo(f.deptHeadCtx, f.memoId, 'approve', null)
+    await actOnMemo(f.directorCtx, f.memoId, 'request_changes', 'Rework')
+    await resubmitMemo(f.authorCtx, f.memoId)
+
+    const cycle2 = await stepsOf(f.memoId, 2)
+    expect(cycle2.map((s) => s.assigneeUserId)).toEqual([f.deptHead.id, f.director.id])
+    expect(cycle2.map((s) => s.stepNo)).toEqual([1, 2])          // renumbered, no gap
+    const [m] = await db.select().from(memos).where(eq(memos.id, f.memoId))
+    expect(m.currentStepNo).toBe(2)                              // back at the Director
   })
 })

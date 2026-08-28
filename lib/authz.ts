@@ -12,6 +12,8 @@ export type MemoAccess = {
   /** Mirrors workflow.ts's own comment rule: author, or a participant of the
    * CURRENT cycle — not just the assignee whose turn it currently is. */
   canComment: boolean
+  /** May re-route the workflow: the author, or whoever is holding the memo. */
+  canRoute: boolean
   /** Set when the viewer may act only because someone delegated to them. */
   actingForUserId: string | null
 }
@@ -75,6 +77,11 @@ export async function getMemoAccess(
     }
   }
 
+  // Mirrors ROUTABLE in lib/workflow.ts: re-routing needs a memo that is
+  // actually sitting on someone's desk.
+  const inFlight = memo.status === 'pending_approval' || memo.status === 'pending_review'
+  const canRoute = inFlight && memo.currentStepNo != null && (isAuthor || canAct)
+
   const canEdit = isAuthor && (memo.status === 'draft' || memo.status === 'changes_requested')
   const canCancel = (isAuthor || isAdmin) && !terminal && memo.status !== 'draft'
   const isCurrentCycleParticipant = participation.some(
@@ -82,5 +89,5 @@ export async function getMemoAccess(
   )
   const canComment = !terminal && memo.currentCycle > 0 && (isAuthor || isCurrentCycleParticipant)
 
-  return { memoId, canView, canAct, canEdit, canCancel, canComment, actingForUserId }
+  return { memoId, canView, canAct, canEdit, canCancel, canComment, canRoute, actingForUserId }
 }

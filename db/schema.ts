@@ -20,6 +20,7 @@ export const EVENT_TYPES = [
   'changes_requested', 'comment', 'forwarded', 'completed', 'cancelled',
   'attachment_added', 'attachment_deleted', 'version_created',
   'participant_assigned', 'edited',
+  'reassigned', 'participant_added', 'participant_removed',
 ] as const
 export const NOTIFICATION_TYPES = [
   'action_required', 'approved', 'rejected', 'changes_requested',

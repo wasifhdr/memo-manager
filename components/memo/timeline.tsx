@@ -1,6 +1,7 @@
 import type { EventType } from '@/db/schema'
 import {
   IconCheckCircle, IconClock, IconEdit, IconXCircle, IconCircleDashed, IconSlashCircle, IconPaperclip,
+  IconUsers,
 } from '@/components/ui/icons'
 
 export type TimelineEvent = {
@@ -34,6 +35,9 @@ const VERB: Record<EventType, string> = {
   version_created: 'created a new version',
   participant_assigned: 'set the workflow participants',
   edited: 'edited the memo',
+  reassigned: 'handed a step to someone else',
+  participant_added: 'added a participant',
+  participant_removed: 'removed a participant',
 }
 
 const ICON: Record<EventType, typeof IconClock> = {
@@ -43,6 +47,7 @@ const ICON: Record<EventType, typeof IconClock> = {
   completed: IconCheckCircle, cancelled: IconSlashCircle,
   attachment_added: IconPaperclip, attachment_deleted: IconPaperclip,
   version_created: IconEdit, participant_assigned: IconEdit, edited: IconEdit,
+  reassigned: IconUsers, participant_added: IconUsers, participant_removed: IconUsers,
 }
 
 const TONE: Record<EventType, string> = {
@@ -52,6 +57,8 @@ const TONE: Record<EventType, string> = {
   completed: 'text-(--color-green-deep)', cancelled: 'text-(--color-ink)/50',
   attachment_added: 'text-(--color-ink)/50', attachment_deleted: 'text-(--color-ink)/50',
   version_created: 'text-(--color-gold-deep)', participant_assigned: 'text-(--color-ink)/50', edited: 'text-(--color-ink)/50',
+  reassigned: 'text-(--color-blue-deep)', participant_added: 'text-(--color-blue-deep)',
+  participant_removed: 'text-(--color-blue-deep)',
 }
 
 export function Timeline({ events }: { events: TimelineEvent[] }) {
