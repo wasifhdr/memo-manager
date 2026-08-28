@@ -86,7 +86,7 @@ export async function submitMemo(ctx: TenantContext, memoId: string): Promise<Ac
     })
     await notify(tx, {
       orgId: ctx.orgId, userId: first.assigneeUserId, type: 'action_required', memoId,
-      title: `${memo.memoNumber} needs your ${first.requiredAction === 'review' ? 'review' : 'approval'}`,
+      title: `${memo.memoNumber} needs your approval`,
       body: memo.subject,
     })
     await audit(tx, {
@@ -155,12 +155,9 @@ export async function actOnMemo(
     if (!actsFor.has(current.assigneeUserId)) {
       return { ok: false, error: 'It is not your turn to act on this memo.' }
     }
-    if (action === 'complete_review' && current.requiredAction !== 'review') {
-      return { ok: false, error: 'This step requires an approval decision.' }
-    }
-    if (action === 'approve' && current.requiredAction !== 'approve') {
-      return { ok: false, error: 'This step requires a review, not an approval.' }
-    }
+    // Reviewer and approver are one role: any participant may sign off with
+    // either verb. 'complete_review' is still accepted so rows created before
+    // the merge, and the action the spec names, both keep working.
 
     const onBehalfOfId = current.assigneeUserId === ctx.user.id ? null : current.assigneeUserId
     const now = new Date()
@@ -248,7 +245,7 @@ export async function actOnMemo(
     })
     await notify(tx, {
       orgId: ctx.orgId, userId: next.assigneeUserId, type: 'action_required', memoId,
-      title: `${memo.memoNumber} needs your ${next.requiredAction === 'review' ? 'review' : 'approval'}`,
+      title: `${memo.memoNumber} needs your approval`,
       body: memo.subject,
     })
     await audit(tx, {

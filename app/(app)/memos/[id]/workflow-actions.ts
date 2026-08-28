@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { requireSession } from '@/lib/tenant'
 import { actOnMemo, submitMemo, resubmitMemo, cancelMemo } from '@/lib/workflow'
 import type { ActionState } from '@/app/(auth)/actions'
+import { isMissingReason, REASON_REQUIRED_MESSAGE } from '@/lib/decision-rules'
 
 function refresh(memoId: string) {
   revalidatePath(`/memos/${memoId}`)
@@ -27,16 +28,25 @@ export async function submitAction(_prev: ActionState, formData: FormData): Prom
   return { ok: true }
 }
 
-const actionSchema = z.object({
-  memoId: z.string().uuid(),
-  action: z.enum(['approve', 'reject', 'request_changes', 'comment', 'complete_review']),
-  comment: z.string().max(5000).optional(),
-})
+const actionSchema = z
+  .object({
+    memoId: z.string().uuid(),
+    action: z.enum(['approve', 'reject', 'request_changes', 'comment', 'complete_review']),
+    comment: z.string().max(5000).optional(),
+  })
+  // Enforced here, not only by the disabled button, so the rule holds however
+  // the action is called.
+  .refine((v) => !isMissingReason(v.action, v.comment), {
+    message: REASON_REQUIRED_MESSAGE,
+    path: ['comment'],
+  })
 
 export async function workflowAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const ctx = await requireSession()
   const parsed = actionSchema.safeParse(Object.fromEntries(formData))
-  if (!parsed.success) return { error: 'That action is not valid.' }
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? 'That action is not valid.' }
+  }
   const { memoId, action, comment } = parsed.data
 
   const result = await actOnMemo(ctx, memoId, action, comment ?? null)

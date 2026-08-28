@@ -227,7 +227,7 @@ async function main() {
     priority: 'urgent',
   })
   await setParticipants(nbuId, memoUrgent.id, [
-    { title: 'Director', assignee: imran, action: 'review' }, { title: 'Finance Manager', assignee: nadia },
+    { title: 'Director', assignee: imran }, { title: 'Finance Manager', assignee: nadia },
   ])
   await submitMemo(ctxOf(rafi), memoUrgent.id)
 

@@ -60,9 +60,7 @@ function StepCard({ step, isCurrent }: { step: RailStep; isCurrent: boolean }) {
           </p>
           <p className="truncate text-[0.75rem] text-(--color-ink)/70">{step.assigneeName}</p>
           <p className="mt-1 text-label uppercase text-(--color-ink)/50">
-            {isCurrent
-              ? `Needs ${step.requiredAction === 'review' ? 'review' : 'approval'} now`
-              : meta.label}
+            {isCurrent ? 'Awaiting their decision' : meta.label}
           </p>
           {step.outcome !== 'pending' && step.actedAt ? (
             <p className="mt-1 text-[0.6875rem] text-(--color-ink)/50">

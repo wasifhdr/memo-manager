@@ -97,13 +97,7 @@ export function ParticipantPicker({
               onChange={(e) => update(i, { assigneeUserId: e.target.value })}
               placeholder="Assign to…"
               options={userOptions}
-              className="h-9 max-w-[16rem] flex-1"
-            />
-            <Select
-              value={step.requiredAction}
-              onChange={(e) => update(i, { requiredAction: e.target.value as RequiredAction })}
-              options={[{ value: 'approve', label: 'Approve' }, { value: 'review', label: 'Review' }]}
-              className="h-9 w-32"
+              className="h-9 max-w-[20rem] flex-1"
             />
             <div className="ml-auto flex shrink-0 gap-1">
               <button type="button" onClick={() => move(i, -1)} disabled={i === 0} className="flex size-7 items-center justify-center rounded-[var(--radius-dot)] text-(--color-ink)/50 hover:bg-(--color-cream) disabled:opacity-30">↑</button>

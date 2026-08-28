@@ -36,10 +36,6 @@ export default async function MemoDetailPage({
   const { memo, cycles, events, attachments, access } = detail
   const isAuthor = memo.authorId === ctx.user.id
 
-  const currentStep = cycles
-    .flatMap((c) => c.steps)
-    .find((s) => s.cycle === memo.currentCycle && s.stepNo === memo.currentStepNo)
-
   const actingForName = access.actingForUserId
     ? (cycles.flatMap((c) => c.steps).find((s) => s.assigneeId === access.actingForUserId)?.assigneeName ?? null)
     : null
@@ -140,7 +136,6 @@ export default async function MemoDetailPage({
             memoId={memo.id}
             canAct={access.canAct}
             canComment={access.canComment}
-            requiredAction={currentStep?.requiredAction ?? null}
             actingForName={actingForName}
           />
           {access.canCancel ? (
